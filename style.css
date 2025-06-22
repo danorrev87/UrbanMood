@@ -159,24 +159,27 @@ body.body-no-scroll {
 }
 
 main {
-    padding: 2em;
+    padding: 1em;
     background-color: #1a1a1a; /* Dark background */
 }
 
 section {
-    margin-bottom: 3em;
-    min-height: 100vh;
+    padding: 2em 0; /* Use padding for vertical spacing */
+    min-height: auto; /* Ensure height is based on content */
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* Align content to the top */
-    padding-top: 3em; /* Add space below the header */
-    box-sizing: border-box; /* Include padding in height calculation */
+    justify-content: center; /* Center content vertically */
     scroll-margin-top: var(--header-height);
+}
+
+/* Remove bottom padding from the last section to reduce space before the footer */
+main section:last-of-type {
+    padding-bottom: 2em;
 }
 
 h2 {
     text-align: center;
-    margin-bottom: 1em;
+    margin-bottom: 0.5em; /* Reduced margin */
     font-size: 2.5em;
 }
 
