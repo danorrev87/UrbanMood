@@ -308,6 +308,19 @@ cite {
     background-color: #8c9a1c;
 }
 
+#contact h2 + p {
+    text-align: center;
+}
+
+#form-status {
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  margin-top: 1rem;
+  font-weight: 600;
+  height: 1.2em; /* Reserve space to avoid layout shift */
+  text-align: center;
+}
+
 footer {
     background-color: #222; /* Slightly lighter dark for footer */
     color: white;

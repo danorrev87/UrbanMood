@@ -1,28 +1,51 @@
 // JavaScript code will go here
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('contact-form');
-    form.addEventListener('submit', function(event) {
-        event.preventDefault();
-        // Basic form validation
-        const name = form.querySelector('input[name="name"]').value;
-        const email = form.querySelector('input[name="email"]').value;
-        const message = form.querySelector('textarea[name="message"]').value;
+    const formStatus = document.getElementById('form-status');
 
-        if (name.trim() === '' || email.trim() === '' || message.trim() === '') {
-            alert('Por favor, completá todos los campos obligatorios.');
-            return;
-        }
+    if (form) {
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const data = new FormData(event.target);
 
-        // Simple email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            alert('Por favor, ingresá un email válido.');
-            return;
-        }
+            // Show sending message
+            formStatus.textContent = 'Enviando...';
+            formStatus.style.color = '#333';
+            formStatus.style.opacity = '1';
 
-        alert('¡Gracias por tu mensaje! Nos pondremos en contacto con vos pronto.');
-        form.reset();
-    });
+            try {
+                const response = await fetch(event.target.action, {
+                    method: 'POST',
+                    body: data,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    formStatus.textContent = "¡Gracias por tu mensaje! Nos pondremos en contacto con vos pronto.";
+                    formStatus.style.color = '#a8b720'; // Use brand green
+                    form.reset();
+                } else {
+                    const responseData = await response.json();
+                    if (Object.hasOwn(responseData, 'errors')) {
+                        formStatus.textContent = responseData.errors.map(error => error.message).join(', ');
+                    } else {
+                        formStatus.textContent = "Oops! Hubo un problema al enviar tu formulario.";
+                    }
+                    formStatus.style.color = 'red';
+                }
+            } catch (error) {
+                formStatus.textContent = "Oops! Hubo un problema al enviar tu formulario.";
+                formStatus.style.color = 'red';
+            }
+
+            // Fade out the status message after 5 seconds
+            setTimeout(() => {
+                formStatus.style.opacity = '0';
+            }, 5000);
+        });
+    }
 
     // Smooth scroll for all anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {

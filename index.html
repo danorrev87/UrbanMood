@@ -144,13 +144,14 @@
     <section id="contact">
         <h2>¿Listx para empezar?</h2>
         <p>Dejanos tus datos y te contactamos para coordinar tu primera clase de prueba. ¡Sin costo y sin compromiso!</p>
-        <form id="contact-form">
+        <form id="contact-form" action="https://formspree.io/f/xwpbndyv" method="POST">
             <input type="text" name="name" placeholder="Tu nombre" required>
             <input type="email" name="email" placeholder="Tu email" required>
             <input type="tel" name="phone" placeholder="Tu teléfono (opcional)">
             <textarea name="message" placeholder="Contanos si tenés alguna duda" required></textarea>
             <button type="submit">¡Quiero mi clase!</button>
         </form>
+        <p id="form-status"></p>
     </section>
 </main>
 
