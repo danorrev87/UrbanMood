@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         form.addEventListener('submit', async function(event) {
             event.preventDefault();
-            const data = new FormData(event.target);
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
 
             // Show sending message
             formStatus.textContent = 'Enviando...';
@@ -14,30 +15,29 @@ document.addEventListener('DOMContentLoaded', function() {
             formStatus.style.opacity = '1';
 
             try {
-                const response = await fetch(event.target.action, {
+                const response = await fetch('http://127.0.0.1:5000/send-email', {
                     method: 'POST',
-                    body: data,
                     headers: {
-                        'Accept': 'application/json'
-                    }
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
                 });
 
-                if (response.ok) {
-                    formStatus.textContent = "¡Gracias por tu mensaje! Nos pondremos en contacto con vos pronto.";
-                    formStatus.style.color = '#a8b720'; // Use brand green
+                const responseData = await response.json();
+
+                if (response.ok && responseData.success) {
+                    formStatus.textContent = '¡Gracias por tu mensaje! Te contactaremos pronto.';
+                    formStatus.style.color = '#a8b720'; // Use project's light green for success
+                    formStatus.className = 'success';
                     form.reset();
                 } else {
-                    const responseData = await response.json();
-                    if (Object.hasOwn(responseData, 'errors')) {
-                        formStatus.textContent = responseData.errors.map(error => error.message).join(', ');
-                    } else {
-                        formStatus.textContent = "Oops! Hubo un problema al enviar tu formulario.";
-                    }
-                    formStatus.style.color = 'red';
+                    formStatus.textContent = responseData.message || 'Oops! Hubo un problema al enviar tu formulario.';
+                    formStatus.className = 'error';
                 }
             } catch (error) {
-                formStatus.textContent = "Oops! Hubo un problema al enviar tu formulario.";
-                formStatus.style.color = 'red';
+                console.error('Error:', error);
+                formStatus.textContent = 'Oops! Hubo un problema al enviar tu formulario.';
+                formStatus.className = 'error';
             }
 
             // Fade out the status message after 5 seconds
