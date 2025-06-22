@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 load_dotenv() # Load environment variables from .env file
 
 app = Flask(__name__)
-CORS(app, resources={r"/send-email": {"origins": "http://localhost:8000"}}) # Allow CORS for the frontend
+# Allow CORS for the frontend, both local and deployed
+CORS(app, resources={r"/send-email": {"origins": ["http://localhost:8000", "https://urbanmood.onrender.com"]}})
 
 @app.route('/send-email', methods=['POST'])
 def send_email():
