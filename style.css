@@ -163,7 +163,7 @@ section {
     display: flex;
     flex-direction: column;
     justify-content: flex-start; /* Align content to the top */
-    padding-top: 4em; /* Add space below the header */
+    padding-top: 3em; /* Add space below the header */
     box-sizing: border-box; /* Include padding in height calculation */
     scroll-margin-top: var(--header-height);
 }
