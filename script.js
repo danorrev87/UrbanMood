@@ -106,12 +106,14 @@ document.addEventListener('DOMContentLoaded', function() {
         hamburgerIcon.addEventListener('click', () => {
             hamburgerIcon.classList.toggle('active');
             sideMenu.classList.toggle('active');
+            document.body.classList.toggle('body-no-scroll'); // Toggle scroll lock
         });
 
         sideMenuLinks.forEach(link => {
             link.addEventListener('click', () => {
                 hamburgerIcon.classList.remove('active');
                 sideMenu.classList.remove('active');
+                document.body.classList.remove('body-no-scroll'); // Remove scroll lock
             });
         });
     }

@@ -17,6 +17,10 @@ body {
     scroll-behavior: smooth;
 }
 
+body.body-no-scroll {
+    overflow: hidden;
+}
+
 .top-header {
     position: sticky;
     top: 0;
