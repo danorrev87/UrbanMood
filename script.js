@@ -104,16 +104,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (hamburgerIcon && sideMenu) {
         hamburgerIcon.addEventListener('click', () => {
-            hamburgerIcon.classList.toggle('active');
+            const isActive = hamburgerIcon.classList.toggle('active');
             sideMenu.classList.toggle('active');
-            document.body.classList.toggle('body-no-scroll'); // Toggle scroll lock
+            document.documentElement.classList.toggle('no-scroll', isActive);
+            document.body.classList.toggle('body-no-scroll', isActive);
         });
 
         sideMenuLinks.forEach(link => {
             link.addEventListener('click', () => {
                 hamburgerIcon.classList.remove('active');
                 sideMenu.classList.remove('active');
-                document.body.classList.remove('body-no-scroll'); // Remove scroll lock
+                document.documentElement.classList.remove('no-scroll');
+                document.body.classList.remove('body-no-scroll');
             });
         });
     }

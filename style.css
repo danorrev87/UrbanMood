@@ -12,11 +12,13 @@ html {
 body {
     font-family: 'Be Vietnam Pro', sans-serif;
     margin: 0;
-    background-color: #1a1a1a; /* Dark background */
-    color: #f4f4f4; /* Light text */
+    padding: 0;
+    background-color: #0D0D0D;
+    color: #F2F2F2;
     scroll-behavior: smooth;
 }
 
+html.no-scroll,
 body.body-no-scroll {
     overflow: hidden;
 }
