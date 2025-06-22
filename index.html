@@ -13,17 +13,37 @@
 </head>
 <body>
 <div class="top-header">
-    <nav>
+    <img src="images/urbanmood_banner.png" alt="UrbanMood Banner" class="banner">
+    <nav class="desktop-nav">
         <ul>
-            <li><a href="#programs">Programas</a></li>
+            <li><a href="#home">Inicio</a></li>
+            <li><a href="#about">Sobre Nosotros</a></li>
+            <li><a href="#actividades">Actividades</a></li>
             <li><a href="#faq">Preguntas Frecuentes</a></li>
             <li><a href="#contact">Contacto</a></li>
         </ul>
     </nav>
-    <img src="images/urbanmood_banner.png" alt="UrbanMood Banner">
 </div>
 
-<header class="hero">
+<button class="hamburger-icon">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+</button>
+
+<div class="side-menu">
+    <nav>
+        <ul>
+            <li><a href="#home">Inicio</a></li>
+            <li><a href="#about">Sobre Nosotros</a></li>
+            <li><a href="#actividades">Actividades</a></li>
+            <li><a href="#faq">Preguntas Frecuentes</a></li>
+            <li><a href="#contact">Contacto</a></li>
+        </ul>
+    </nav>
+</div>
+
+<header class="hero" id="home">
     <div class="image-carousel">
         <div class="carousel-slide" style="background-image: url('images/carousel1.jpg');"></div>
         <div class="carousel-slide" style="background-image: url('images/carousel2.jpg');"></div>
@@ -59,37 +79,45 @@
         </div>
     </section>
 
-    <section id="programs">
-        <h2>Nuestros Programas</h2>
-        <div class="program-cards">
-            <div class="card">
-                <h3>Entrenamiento funcional</h3>
-                <p>Movete con intención y para la vida real. Clases que combinan fuerza, resistencia y agilidad para que te sientas increíble dentro y fuera del gym.</p>
+    <section id="actividades">
+        <h2>Actividades</h2>
+        <div class="activity-list">
+            <div class="activity-item">
+                <div class="activity-header">
+                    <h3>Musculación</h3>
+                    <span class="toggle-icon">+</span>
+                </div>
+                <div class="activity-content">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                </div>
             </div>
-            <div class="card">
-                <h3>HIIT y circuitos</h3>
-                <p>¡Energía a tope! Circuitos dinámicos y divertidos para desafiar tus límites a tu propio ritmo, siempre con buena música y la mejor compañía.</p>
+            <div class="activity-item">
+                <div class="activity-header">
+                    <h3>Semi Personalizado</h3>
+                    <span class="toggle-icon">+</span>
+                </div>
+                <div class="activity-content">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                </div>
             </div>
-            <div class="card">
-                <h3>Fuerza y resistencia</h3>
-                <p>Descubrí tu propia fuerza sin presiones. Te acompañamos a construir una base sólida para que te sientas más potente en tu día a día.</p>
+            <div class="activity-item">
+                <div class="activity-header">
+                    <h3>Clases</h3>
+                    <span class="toggle-icon">+</span>
+                </div>
+                <div class="activity-content">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                </div>
             </div>
-            <div class="card">
-                <h3>Movilidad y bienestar</h3>
-                <p>Conectá con tu cuerpo de una forma más consciente. Clases para mejorar tu flexibilidad, reducir tensiones y darte un mimo.</p>
+            <div class="activity-item">
+                <div class="activity-header">
+                    <h3>Yoga</h3>
+                    <span class="toggle-icon">+</span>
+                </div>
+                <div class="activity-content">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                </div>
             </div>
-        </div>
-    </section>
-
-    <section id="testimonials">
-        <h2>Qué dice nuestra comunidad</h2>
-        <div class="testimonial">
-            <blockquote>"Por fin un lugar donde puedo entrenar sin sentirme juzgada. La comunidad que se forma acá es única. ¡Gracias UrbanMood!"</blockquote>
-            <cite>- Martina G.</cite>
-        </div>
-        <div class="testimonial">
-            <blockquote>"Dejé de ver el entrenamiento como un castigo y empecé a disfrutarlo. Lxs profes son geniales y siempre te tiran la mejor."</blockquote>
-            <cite>- Alex P.</cite>
         </div>
     </section>
 

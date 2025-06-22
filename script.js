@@ -28,9 +28,20 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth' });
+            const targetId = this.getAttribute('href');
+
+            if (targetId === '#home') {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            } else {
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
             }
         });
     });
@@ -61,5 +72,35 @@ document.addEventListener('DOMContentLoaded', function() {
             currentSlide = (currentSlide + 1) % slides.length;
             slides[currentSlide].classList.add('active');
         }, 5000); // Change slide every 5 seconds
+    }
+
+    // New Mobile menu functionality
+    const hamburgerIcon = document.querySelector('.hamburger-icon');
+    const sideMenu = document.querySelector('.side-menu');
+    const sideMenuLinks = document.querySelectorAll('.side-menu nav a');
+
+    if (hamburgerIcon && sideMenu) {
+        hamburgerIcon.addEventListener('click', () => {
+            hamburgerIcon.classList.toggle('active');
+            sideMenu.classList.toggle('active');
+        });
+
+        sideMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                hamburgerIcon.classList.remove('active');
+                sideMenu.classList.remove('active');
+            });
+        });
+    }
+
+    // Accordion for Actividades
+    const activityItems = document.querySelectorAll('.activity-item');
+    if (activityItems.length > 0) {
+        activityItems.forEach(item => {
+            const header = item.querySelector('.activity-header');
+            header.addEventListener('click', () => {
+                item.classList.toggle('active');
+            });
+        });
     }
 });

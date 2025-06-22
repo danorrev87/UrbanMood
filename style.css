@@ -1,14 +1,35 @@
 /* CSS styles will go here */
 
+:root {
+    --header-height: 90px;
+    --header-height-mobile: 60px;
+}
+
+html {
+    overflow-x: hidden;
+}
+
+body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    margin: 0;
+    background-color: #1a1a1a; /* Dark background */
+    color: #f4f4f4; /* Light text */
+    scroll-behavior: smooth;
+}
+
 .top-header {
     position: sticky;
     top: 0;
     z-index: 1000;
     background-color: #3f484e; /* User-specified grey */
-    padding: 0 20px; /* Remove vertical padding */
+    padding: 0; /* Remove padding */
     display: flex;
     justify-content: space-between; /* Adjust alignment */
     align-items: center;
+}
+
+.desktop-nav {
+    padding-right: 20px; /* Add padding to the right of the nav */
 }
 
 .top-header nav ul {
@@ -25,6 +46,7 @@
     font-weight: 600;
     padding: 10px;
     transition: color 0.3s;
+    font-size: 0.9em; /* Reduce font size */
 }
 
 .top-header nav a:hover {
@@ -34,19 +56,17 @@
 .top-header img {
     height: 90px; /* Increased height */
     clip-path: inset(1px);
+    display: block; /* Ensure it behaves as a block element */
 }
 
-body {
-    font-family: 'Be Vietnam Pro', sans-serif;
-    margin: 0;
-    background-color: #1a1a1a; /* Dark background */
-    color: #f4f4f4; /* Light text */
-    scroll-behavior: smooth;
+.desktop-banner {
+    margin-left: 0; /* Explicitly remove left margin */
+    padding-left: 0; /* Explicitly remove left padding */
 }
 
 .hero {
     position: relative;
-    height: 100vh;
+    height: calc(100vh - var(--header-height));
     display: flex;
     justify-content: center;
     align-items: center;
@@ -139,6 +159,13 @@ main {
 
 section {
     margin-bottom: 3em;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Align content to the top */
+    padding-top: 4em; /* Add space below the header */
+    box-sizing: border-box; /* Include padding in height calculation */
+    scroll-margin-top: var(--header-height);
 }
 
 h2 {
@@ -180,6 +207,55 @@ h2 {
 
 .card:hover {
     transform: translateY(-10px);
+}
+
+/* Activity List Styles */
+.activity-list {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.activity-item {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 10px;
+    margin-bottom: 1em;
+    overflow: hidden;
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5em;
+    cursor: pointer;
+}
+
+.activity-header h3 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.toggle-icon {
+    font-size: 2em;
+    font-weight: bold;
+    transition: transform 0.3s;
+}
+
+.activity-content {
+    padding: 0 1.5em;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+}
+
+.activity-item.active .activity-content {
+    max-height: 200px; /* Adjust as needed */
+    padding: 1.5em;
+}
+
+.activity-item.active .toggle-icon {
+    transform: rotate(45deg);
 }
 
 .testimonial {
@@ -265,7 +341,134 @@ footer {
     color: #aaa;
 }
 
+/* New Mobile Menu Styles */
+.hamburger-icon {
+    display: none; /* Hidden by default, shown in media query */
+    position: fixed;
+    top: 30px; /* Adjust to vertically center with header */
+    right: 20px;
+    z-index: 2001; /* Above the menu overlay */
+    width: 30px;
+    height: 22px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.hamburger-icon .bar {
+    display: block;
+    width: 100%;
+    height: 3px;
+    background-color: white;
+    margin: 5px 0;
+    transition: all 0.4s ease-in-out;
+    border-radius: 2px;
+}
+
+.hamburger-icon.active .bar:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.hamburger-icon.active .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-icon.active .bar:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(26, 26, 26, 0.98); /* Dark overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s, visibility 0.5s;
+    z-index: 2000;
+}
+
+.side-menu.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.side-menu nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+.side-menu nav li {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.side-menu.active nav li {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Staggered animation */
+.side-menu.active nav li:nth-child(1) { transition-delay: 0.2s; }
+.side-menu.active nav li:nth-child(2) { transition-delay: 0.3s; }
+.side-menu.active nav li:nth-child(3) { transition-delay: 0.4s; }
+
+.side-menu nav a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.8em; /* Reduced font size for overlay menu */
+    font-weight: 600;
+    display: block;
+    padding: 15px;
+    transition: color 0.3s;
+}
+
+.side-menu nav a:hover {
+    color: #a8b720;
+}
+
+/* Remove obsolete styles */
+.mobile-header,
+.mobile-menu-icon,
+.close-menu-icon {
+    display: none;
+}
+
 @media (max-width: 768px) {
+    .top-header {
+        padding: 0 20px; /* Add horizontal padding */
+    }
+
+    .desktop-nav {
+        display: none; /* Hide desktop nav on mobile */
+    }
+
+    .banner {
+        height: var(--header-height-mobile);
+        width: auto; /* Maintain aspect ratio */
+    }
+
+    .hamburger-icon {
+        display: block; /* Show hamburger on mobile */
+    }
+
+    .hero {
+        height: calc(100vh - var(--header-height-mobile));
+    }
+
+    section {
+        scroll-margin-top: var(--header-height-mobile);
+    }
+
     .hero-content h1 {
         font-size: 2.5em;
     }
