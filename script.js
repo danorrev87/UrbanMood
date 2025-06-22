@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formStatus.style.opacity = '1';
 
             try {
-                const response = await fetch('http://127.0.0.1:5000/send-email', {
+                const response = await fetch('https://mailer-app-5ebl.onrender.com/send-email', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
