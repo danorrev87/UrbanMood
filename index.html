@@ -3,13 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UrbanMood</title>
+    <title>UrbanMood - Gimnasios en Uruguay con un enfoque diverso</title>
+    <meta name="description" content="UrbanMood es uno de los gimnasios más diversos en Uruguay, enfocado en crear una comunidad inclusiva. Ofrecemos entrenamiento personalizado y un ambiente libre de acoso.">
+    <meta name="keywords" content="gimnasios en uruguay, urbanmood, gimnasios diversos, gimnasio en montevideo, entrenamiento personalizado, comunidad fitness">
+    <meta name="author" content="UrbanMood">
+    <link rel="canonical" href="https://urbanmood.gym/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://urbanmood.gym/">
+    <meta property="og:title" content="UrbanMood - Gimnasios en Uruguay con un enfoque diverso">
+    <meta property="og:description" content="UrbanMood es uno de los gimnasios más diversos en Uruguay, enfocado en crear una comunidad inclusiva. Ofrecemos entrenamiento personalizado y un ambiente libre de acoso.">
+    <meta property="og:image" content="https://urbanmood.gym/images/urbanmood_banner.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://urbanmood.gym/">
+    <meta property="twitter:title" content="UrbanMood - Gimnasios en Uruguay con un enfoque diverso">
+    <meta property="twitter:description" content="UrbanMood es uno de los gimnasios más diversos en Uruguay, enfocado en crear una comunidad inclusiva. Ofrecemos entrenamiento personalizado y un ambiente libre de acoso.">
+    <meta property="twitter:image" content="https://urbanmood.gym/images/urbanmood_banner.png">
+
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SportsActivityLocation",
+      "name": "UrbanMood",
+      "description": "Gimnasio y espacio de entrenamiento diverso en Uruguay, enfocado en comunidad y bienestar.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Maldonado 1508",
+        "addressLocality": "Montevideo",
+        "postalCode": "11200",
+        "addressCountry": "UY"
+      },
+      "telephone": "+59899666780",
+      "url": "https://urbanmood.gym/",
+      "image": "https://urbanmood.gym/images/urbanmood_banner.png",
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "opens": "07:00",
+          "closes": "22:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": "Saturday",
+          "opens": "09:00",
+          "closes": "13:00"
+        }
+      ],
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "-34.9086",
+        "longitude": "-56.1836"
+      },
+      "priceRange": "$$",
+      "sameAs": [
+        "https://www.instagram.com/urbanmood.gym"
+      ]
+    }
+    </script>
 </head>
 <body>
 <div class="top-header">
@@ -61,19 +129,19 @@
 
 <main>
     <section id="about">
-        <h2>Sobre Nosotros</h2>
-        <p>Somos un espacio de entrenamiento que busca conectar a las personas con el movimiento de una forma divertida, sin culpa y generando comunidad. En Urban, entrenás desde el disfrute, en un ambiente libre de acoso y en contra de la gordofobia, promoviendo la diversidad en todas sus formas.</p>
+        <h2>Sobre Nosotros: Tu Gimnasio en Uruguay</h2>
+        <p>Somos un espacio de entrenamiento que busca conectar a las personas con el movimiento de una forma divertida, sin culpa y generando comunidad. En UrbanMood, uno de los gimnasios más diversos de Uruguay, entrenás desde el disfrute, en un ambiente libre de acoso y en contra de la gordofobia, promoviendo la diversidad en todas sus formas.</p>
         <div class="features">
             <div class="feature">
-                <img src="https://img.icons8.com/ios/50/a8b720/personal-trainer.png" alt="Entrenamiento personalizado">
+                <img src="https://img.icons8.com/ios/50/a8b720/personal-trainer.png" alt="Entrenamiento personalizado en gimnasio UrbanMood">
                 <h3>Entrenamiento personalizado</h3>
             </div>
             <div class="feature">
-                <img src="https://img.icons8.com/ios/50/a8b720/barbell.png" alt="Equipamiento de primera">
+                <img src="https://img.icons8.com/ios/50/a8b720/barbell.png" alt="Equipamiento de primera en gimnasios de Uruguay">
                 <h3>Equipamiento de primera</h3>
             </div>
             <div class="feature">
-                <img src="https://img.icons8.com/ios/50/a8b720/groups.png" alt="Comunidad inclusiva">
+                <img src="https://img.icons8.com/ios/50/a8b720/groups.png" alt="Comunidad inclusiva en gimnasios diversos">
                 <h3>Comunidad inclusiva</h3>
             </div>
         </div>
@@ -158,13 +226,13 @@
 <footer>
     <div class="social-media">
         <a href="https://www.instagram.com/urbanmood.gym" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-        <a href="https://wa.me/59899666780?text=Vengo%20de%20la%20web%20de%20UrbanMood%20y%20quisiera%20asistencia%20%3A%29" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://wa.me/59899188869?text=Vengo%20de%20la%20web%20de%20UrbanMood%20y%20quisiera%20asistencia%20%3A%29" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
     </div>
     <div class="footer-info">
         <p>📍 Maldonado 1508</p>
         <p>⏰ Lunes a Viernes de 7 a 22hs | Sábados de 9 a 13hs</p>
     </div>
-    <p class="copyright">&copy; 2025 UrbanMood. Creado con ❤️ para mover el cuerpo y la mente.</p>
+    <p class="copyright">&copy; 2024 UrbanMood. Creado con ❤️ para mover el cuerpo y la mente.</p>
 </footer>
 
 <script src="script.js?v=1.1"></script>
