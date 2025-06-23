@@ -97,14 +97,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000); // Change slide every 5 seconds
     }
 
+    // Adjust hero height on mobile to account for viewport inconsistencies
+    function setHeroHeight() {
+        const hero = document.querySelector('.hero');
+        const header = document.querySelector('.top-header');
+        if (hero && header) {
+            const headerHeight = header.offsetHeight;
+            hero.style.height = `${window.innerHeight - headerHeight}px`;
+        }
+    }
+
+    // Set height on initial load and on resize, specifically for mobile
+    if (window.innerWidth <= 768) {
+        setHeroHeight();
+        window.addEventListener('resize', setHeroHeight);
+    }
+
     // New Mobile menu functionality
-    const hamburgerIcon = document.querySelector('.hamburger-icon');
+    const hamburger = document.querySelector('.hamburger-icon');
     const sideMenu = document.querySelector('.side-menu');
     const sideMenuLinks = document.querySelectorAll('.side-menu nav a');
 
-    if (hamburgerIcon && sideMenu) {
-        hamburgerIcon.addEventListener('click', () => {
-            const isActive = hamburgerIcon.classList.toggle('active');
+    if (hamburger && sideMenu) {
+        hamburger.addEventListener('click', () => {
+            const isActive = hamburger.classList.toggle('active');
             sideMenu.classList.toggle('active');
             document.documentElement.classList.toggle('no-scroll', isActive);
             document.body.classList.toggle('body-no-scroll', isActive);
@@ -112,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         sideMenuLinks.forEach(link => {
             link.addEventListener('click', () => {
-                hamburgerIcon.classList.remove('active');
+                hamburger.classList.remove('active');
                 sideMenu.classList.remove('active');
                 document.documentElement.classList.remove('no-scroll');
                 document.body.classList.remove('body-no-scroll');
