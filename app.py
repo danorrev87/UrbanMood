@@ -41,8 +41,8 @@ def send_email():
     }
     recipients = [
         {
-            "name": "UrbanMood Admin",
-            "email": "danorrev87@gmail.com", # Your "to" email
+            "name": "Danilo Orrego",
+            "email": "dorrego@urbanmood.net",
         }
     ]
     
