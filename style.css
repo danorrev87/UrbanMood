@@ -149,6 +149,7 @@ body.body-no-scroll {
     color: white;
     font-size: 2em;
     text-decoration: none;
+    display: inline-block; /* Add this to allow transforms */
     animation: bounce 2s infinite;
 }
 
@@ -202,6 +203,10 @@ section {
 /* Remove bottom padding from the last section to reduce space before the footer */
 main section:last-of-type {
     padding-bottom: 2em;
+}
+
+#about {
+    margin: 5em 0;
 }
 
 h2 {
