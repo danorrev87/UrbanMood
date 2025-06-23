@@ -36,8 +36,8 @@ def send_email():
     # Define email parameters
     mail_body = {}
     mail_from = {
-        "name": "UrbanMood Contact Form",
-        "email": "MS_t0na1k@test-65qngkdx928lwr12.mlsender.net", # Your verified "from" email
+        "name": "Contacto UrbanMood",
+        "email": "contacto@urbanmood.net", # Your verified "from" email
     }
     recipients = [
         {
