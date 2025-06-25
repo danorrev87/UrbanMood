@@ -104,6 +104,13 @@ body.body-no-scroll {
     opacity: 0 !important;
 }
 
+.image-carousel::after {
+    display: none; /* Ensure no overlay conflicts */
+    content: none;
+    background: none;
+    pointer-events: none;
+}
+
 .carousel-slide {
     position: absolute;
     top: 0;
@@ -878,4 +885,21 @@ footer {
 
 .floating-whatsapp i {
     vertical-align: middle;
+}
+
+#comunidad::before {
+    display: none !important;
+    background: none !important;
+    background-color: transparent !important;
+    content: '' !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: static !important;
+    z-index: -1 !important;
+    opacity: 0 !important;
+}
+#comunidad > * {
+    position: relative;
+    z-index: 3;
 }
