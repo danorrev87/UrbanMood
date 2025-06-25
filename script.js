@@ -113,6 +113,28 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('resize', setHeroHeight);
     }
 
+    // Floating WhatsApp Icon Visibility
+    const floatingWhatsApp = document.querySelector('.floating-whatsapp');
+    const heroSection = document.querySelector('.hero');
+    console.log('floatingWhatsApp:', floatingWhatsApp);
+    console.log('heroSection:', heroSection);
+    if (floatingWhatsApp) floatingWhatsApp.classList.add('visible'); // TEMP: always show for debug
+
+    function updateWhatsAppVisibility() {
+        if (floatingWhatsApp && heroSection) {
+            const heroRect = heroSection.getBoundingClientRect();
+            if (heroRect.bottom < 0 || window.scrollY > 100) {
+                floatingWhatsApp.classList.add('visible');
+            } else {
+                floatingWhatsApp.classList.remove('visible');
+            }
+        }
+    }
+
+    window.addEventListener('scroll', updateWhatsAppVisibility);
+    window.addEventListener('resize', updateWhatsAppVisibility);
+    updateWhatsAppVisibility(); // Initial check
+
     // New Mobile menu functionality
     const hamburger = document.querySelector('.hamburger-icon');
     const sideMenu = document.querySelector('.side-menu');

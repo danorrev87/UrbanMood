@@ -85,7 +85,7 @@
     <nav class="desktop-nav">
         <ul>
             <li><a href="#home">Inicio</a></li>
-            <li><a href="#about">Sobre Nosotros</a></li>
+            <li><a href="#about">Sobre nosotrxs</a></li>
             <li><a href="#actividades">Actividades</a></li>
             <li><a href="#faq">Preguntas Frecuentes</a></li>
             <li><a href="#contact">Contacto</a></li>
@@ -103,7 +103,7 @@
     <nav>
         <ul>
             <li><a href="#home">Inicio</a></li>
-            <li><a href="#about">Sobre Nosotros</a></li>
+            <li><a href="#about">Sobre nosotrxs</a></li>
             <li><a href="#actividades">Actividades</a></li>
             <li><a href="#faq">Preguntas Frecuentes</a></li>
             <li><a href="#contact">Contacto</a></li>
@@ -112,18 +112,20 @@
 </div>
 
 <header class="hero" id="home">
-    <div class="image-carousel">
-        <div class="carousel-slide" style="background-image: url('images/carousel1.jpg');"></div>
-        <div class="carousel-slide" style="background-image: url('images/carousel2.jpg');"></div>
-        <div class="carousel-slide" style="background-image: url('images/carousel3.jpg');"></div>
-        <div class="carousel-slide" style="background-image: url('images/carousel4.jpg');"></div>
-        <div class="carousel-slide" style="background-image: url('images/carousel5.jpg');"></div>
-        <div class="carousel-slide" style="background-image: url('images/carousel6.jpg');"></div>
+    <div class="comunidad-video-bg">
+        <video autoplay loop muted playsinline poster="images/faq-poster.jpg">
+            <source src="videos/web.mp4" type="video/mp4">
+            Tu navegador no soporta video HTML5.
+        </video>
+        <div class="comunidad-video-overlay"></div>
     </div>
     <div class="hero-content">
         <h1>CREANDO COMUNIDAD</h1>
-        <p>Entrenamientos personalizados, comunidad, resultados.</p>
-        <a href="#contact" class="cta-button">Reservá tu clase de prueba</a>
+        <p class="hero-subtext" style="text-align: center;">
+            Entrenamiento sin estereotipos<br>
+            Nos movemos desde el disfrute, no desde la exigencia.
+        </p>
+        <a href="https://wa.me/59899666780?text=Vengo%20de%20la%20web%20de%20UrbanMood%20y%20quisiera%20asistencia%20%3A%29" class="cta-button" id="cta-button" target="_blank" rel="noopener" aria-label="WhatsApp">Reservá tu clase de prueba</a>
     </div>
     <div class="scroll-down-arrow">
         <a href="#about" aria-label="Scroll down">
@@ -134,16 +136,20 @@
 
 <main>
     <section id="about">
-        <h2>Sobre Nosotros: Tu Gimnasio en Uruguay</h2>
-        <p>Somos un espacio de entrenamiento que busca conectar a las personas con el movimiento de una forma divertida, sin culpa y generando comunidad. En UrbanMood, uno de los gimnasios más diversos de Uruguay, entrenás desde el disfrute, en un ambiente libre de acoso y en contra de la gordofobia, promoviendo la diversidad en todas sus formas.</p>
+        <h2>Sobre nosotrxs</h2>
+        <p>
+            En UrbanMood entrenamos desde el disfrute.<br>
+            Somos mucho más que un gimnasio: somos un espacio donde el movimiento se vive sin culpa, con alegría y en comunidad. Promovemos una forma de entrenar inclusiva, libre de acoso y lejos de los estándares tóxicos del fitness tradicional.<br>
+            En UrbanMood celebramos la diversidad en todas sus formas, porque creemos que cada cuerpo merece moverse en un lugar donde se sienta seguro, acompañado y bienvenido.
+        </p>
         <div class="features">
             <div class="feature">
-                <img src="https://img.icons8.com/ios/50/a8b720/personal-trainer.png" alt="Entrenamiento personalizado en gimnasio UrbanMood">
-                <h3>Entrenamiento personalizado</h3>
+                <img src="https://img.icons8.com/ios/50/a8b720/calendar.png" alt="Eventos UrbanMood">
+                <h3>Eventos</h3>
             </div>
             <div class="feature">
-                <img src="https://img.icons8.com/ios/50/a8b720/barbell.png" alt="Equipamiento de primera en gimnasios de Uruguay">
-                <h3>Equipamiento de primera</h3>
+                <img src="https://img.icons8.com/ios/50/a8b720/lotus.png" alt="Actividades alternativas UrbanMood">
+                <h3>Actividades alternativas</h3>
             </div>
             <div class="feature">
                 <img src="https://img.icons8.com/ios/50/a8b720/groups.png" alt="Comunidad inclusiva en gimnasios diversos">
@@ -161,7 +167,7 @@
                     <span class="toggle-icon">+</span>
                 </div>
                 <div class="activity-content">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                    <p>Sala de musculación completa con profxs a cargo en todo momento, contamos con grupo de seguimiento y rutinas personalizadas.</p>
                 </div>
             </div>
             <div class="activity-item">
@@ -170,16 +176,7 @@
                     <span class="toggle-icon">+</span>
                 </div>
                 <div class="activity-content">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                </div>
-            </div>
-            <div class="activity-item">
-                <div class="activity-header">
-                    <h3>Clases</h3>
-                    <span class="toggle-icon">+</span>
-                </div>
-                <div class="activity-content">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                    <p>Grupos guiadxs por un profx, de no más de 7 personas que entrenan en sala de musculación, actividad con agenda previa.</p>
                 </div>
             </div>
             <div class="activity-item">
@@ -188,29 +185,41 @@
                     <span class="toggle-icon">+</span>
                 </div>
                 <div class="activity-content">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                    <p>Sin reglas rígidas, sin “policía yogui”, solo vos y tu práctica.<br>Unimos Hatha Yoga funcional con toques de Yin Yoga, para que disfrutes, te sientas bien y lo hagas parte de tu vida.</p>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-header">
+                    <h3>Clases</h3>
+                    <span class="toggle-icon">+</span>
+                </div>
+                <div class="activity-content">
+                    <p>Actividades dirigidas en todos los horarios</p>
+                    <img src="images/clases-dropdown.jpg" alt="Clases UrbanMood" class="dropdown-image" style="width:100%;max-width:350px;margin:1em auto;display:block;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
                 </div>
             </div>
         </div>
     </section>
-
-    <section id="faq">
-        <h2>Preguntas Frecuentes</h2>
-        <div class="faq-item">
-            <h3>¿Tengo que tener experiencia previa?</h3>
-            <p>¡Para nada! En Urban, cada quien va a su ritmo. Adaptamos todos los ejercicios para que disfrutes desde el primer día, sin importar tu nivel.</p>
+    <div class="section-separator"></div>
+    <section id="comunidad">
+        <div class="image-carousel">
+            <div class="carousel-slide" style="background-image: url('images/carousel1.jpg');"></div>
+            <div class="carousel-slide" style="background-image: url('images/carousel2.jpg');"></div>
+            <div class="carousel-slide" style="background-image: url('images/carousel3.jpg');"></div>
+            <div class="carousel-slide" style="background-image: url('images/carousel4.jpg');"></div>
+            <div class="carousel-slide" style="background-image: url('images/carousel5.jpg');"></div>
+            <div class="carousel-slide" style="background-image: url('images/carousel6.jpg');"></div>
+            <div class="carousel-slide" style="background-image: url('images/carousel7.jpg');"></div>
+            <div class="carousel-slide" style="background-image: url('images/carousel8.jpg');"></div>
         </div>
-        <div class="faq-item">
-            <h3>¿Puedo ir sin compromiso?</h3>
-            <p>¡Obvio! Queremos que nos conozcas. Tu primera clase de prueba es gratis para que vengas a mover el cuerpo y veas si te gusta nuestro ambiente.</p>
-        </div>
-        <div class="faq-item">
-            <h3>¿Qué necesito llevar?</h3>
-            <p>Ropa cómoda que te permita moverte con libertad, zapatillas, una botella de agua y ¡toda la buena onda!</p>
-        </div>
-        <div class="faq-item">
-            <h3>¿Dónde están ubicados?</h3>
-            <p>Encontranos en Maldonado 1508. ¡Te esperamos para entrenar y pasarla bien!</p>
+        <div class="comunidad-content">
+            <h2>Comunidad</h2>
+            <ul class="comunidad-list">
+                <li>Modo trote</li>
+                <li>Charlas que importan</li>
+                <li>Sesiones de impro</li>
+                <li>Fuerza en movimiento</li>
+            </ul>
         </div>
     </section>
 
@@ -239,6 +248,10 @@
     </div>
     <p class="copyright">&copy; 2024 UrbanMood. Creado con ❤️ para mover el cuerpo y la mente.</p>
 </footer>
+
+<a href="https://wa.me/59899666780?text=Vengo%20de%20la%20web%20de%20UrbanMood%20y%20quisiera%20asistencia%20%3A%29" class="floating-whatsapp" target="_blank" aria-label="WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+</a>
 
 <script src="script.js?v=1.1"></script>
 </body>
