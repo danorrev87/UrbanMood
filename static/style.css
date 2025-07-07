@@ -700,6 +700,46 @@ footer {
     border-radius: 10px;
 }
 
+.floating-whatsapp {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #25D366; /* WhatsApp Color */
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 2.5em;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: opacity 0.4s, visibility 0.4s, transform 0.4s ease-out;
+}
+
+.floating-whatsapp.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.floating-whatsapp:hover {
+    background-color: #1EBE57;
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    transition: all 0.3s ease-out;
+}
+
+.floating-whatsapp i {
+    position: relative;
+    top: 1px;
+}
+
 /* Media Queries for Mobile Responsiveness */
 @media (max-width: 768px) {
     :root {
