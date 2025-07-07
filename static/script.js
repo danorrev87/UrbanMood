@@ -189,4 +189,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
     updateVideoSource();
     window.addEventListener('resize', updateVideoSource);
+
+    // Scroll animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+
+    // Observe all elements with animation classes
+    const animatedElements = document.querySelectorAll('.fade-in, .fade-in-left, .fade-in-right, .scale-in, .slide-up');
+    animatedElements.forEach(element => {
+        observer.observe(element);
+    });
+
+    // Add pulse animation to CTA buttons after they become visible
+    const ctaButtons = document.querySelectorAll('.cta-button');
+    ctaButtons.forEach(button => {
+        button.classList.add('fade-in');
+        observer.observe(button);
+        
+        // Add pulse animation after the button becomes visible
+        button.addEventListener('transitionend', () => {
+            if (button.classList.contains('visible')) {
+                setTimeout(() => {
+                    button.classList.add('pulse-animation');
+                }, 500);
+            }
+        });
+    });
+
+    // Add floating animation to specific elements
+    const floatingElements = document.querySelectorAll('.floating-whatsapp');
+    floatingElements.forEach(element => {
+        element.classList.add('float-animation');
+    });
 });
