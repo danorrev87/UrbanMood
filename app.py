@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 import os
 from mailersend import emails
@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv() # Load environment variables from .env file
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', template_folder='templates')
 # Allow CORS for the frontend, both local and deployed
 CORS(app, resources={r"/send-email": {"origins": ["http://localhost:8000", "https://urbanmood.onrender.com"]}})
 
@@ -162,5 +162,13 @@ def send_email():
         print(f"An error occurred while sending email: {e}")
         return jsonify({"success": False, "message": "An error occurred while sending the email."}), 500
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/<path:filename>')
+def static_files(filename):
+    return send_from_directory(app.static_folder, filename)
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5001) # Runs on a different port than the http.server
+    app.run(debug=True, host='0.0.0.0', port=5001)

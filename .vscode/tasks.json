@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Run Flask app",
+			"command": "FLASK_APP=app.py flask run --host=0.0.0.0 --port=5000",
+			"group": "build",
+			"isBackground": true
+		}
+	]
+}
