@@ -525,7 +525,7 @@ footer {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.5s, visibility 0.5s;
-    z-index: 2000;
+    z-index: 1999; /* Lower than hamburger icon */
 }
 
 .side-menu.active {
@@ -566,6 +566,9 @@ footer {
 }
 .side-menu.active nav ul li:nth-child(5) {
     transition-delay: 0.5s;
+}
+.side-menu.active nav ul li:nth-child(6) {
+    transition-delay: 0.6s;
 }
 
 .side-menu nav a {
@@ -975,7 +978,7 @@ footer {
         justify-content: space-between; /* Space between logo and hamburger */
         position: fixed; /* Keep fixed positioning on mobile too */
         top: 0;
-        z-index: 1000;
+        z-index: 2000; /* Above the menu overlay */
         width: 100%;
         padding: 0 10px; /* Add some padding for mobile */
         height: var(--header-height); /* Use CSS variable for consistency */
@@ -994,6 +997,7 @@ footer {
     .hamburger-icon {
         display: block; /* Show hamburger icon */
         z-index: 2001; /* Above the menu overlay */
+        position: relative; /* Ensure it stays above overlay */
     }
 
     .hero {
