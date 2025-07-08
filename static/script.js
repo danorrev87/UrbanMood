@@ -1,4 +1,25 @@
 // JavaScript code will go here
+function setVH() {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// Set initial viewport height
+setVH();
+
+// Update on window resize
+window.addEventListener('resize', setVH);
+
+// Update on orientation change (important for mobile)
+window.addEventListener('orientationchange', function() {
+    setTimeout(setVH, 100); // Small delay to ensure orientation change is complete
+});
+
+// Also set on DOMContentLoaded to ensure it's available early
+document.addEventListener('DOMContentLoaded', function() {
+    setVH();
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
@@ -231,4 +252,45 @@ document.addEventListener('DOMContentLoaded', function() {
     floatingElements.forEach(element => {
         element.classList.add('float-animation');
     });
+
+    // Header hide/show on scroll functionality
+    let lastScrollTop = 0;
+    let scrollTimeout = null;
+    const header = document.querySelector('.top-header');
+    const scrollThreshold = 5; // Minimum scroll distance to trigger hide/show
+
+    function handleScroll() {
+        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Clear any existing timeout
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+        
+        // Don't hide header when at the very top of the page
+        if (currentScroll <= 0) {
+            header.classList.remove('hidden');
+            lastScrollTop = currentScroll;
+            return;
+        }
+        
+        // Only act if scroll distance is significant enough
+        if (Math.abs(currentScroll - lastScrollTop) > scrollThreshold) {
+            if (currentScroll > lastScrollTop) {
+                // Scrolling down - hide header
+                header.classList.add('hidden');
+            } else {
+                // Scrolling up - show header
+                header.classList.remove('hidden');
+            }
+            lastScrollTop = currentScroll;
+        }
+        
+        // Set a timeout to show header after scrolling stops
+        scrollTimeout = setTimeout(() => {
+            header.classList.remove('hidden');
+        }, 1000); // Show header 1 second after scrolling stops
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
 });

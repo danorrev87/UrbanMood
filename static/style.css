@@ -1,21 +1,31 @@
 /* CSS styles will go here */
 
-:root {
-    --header-height: 90px;
-    --header-height-mobile: 60px;
+* {
+    box-sizing: border-box;
 }
 
-html {
-    overflow-x: hidden;
+:root {
+    --header-height: 60px; /* Default to mobile height */
+    --header-height-mobile: 60px;
+    --vh: 1vh; /* Fallback for viewport height */
 }
 
 body {
     font-family: 'Be Vietnam Pro', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #0D0D0D;
+    background-color: #1a1a1a; /* Match main section background */
     color: #F2F2F2;
     scroll-behavior: smooth;
+    overflow-x: hidden; /* This prevents horizontal scrolling */
+    width: 100%;
+    max-width: 100%;
+}
+
+html {
+    overflow-x: hidden; /* Also prevent horizontal scrolling on html */
+    width: 100%;
+    max-width: 100%;
 }
 
 html.no-scroll,
@@ -24,7 +34,7 @@ body.body-no-scroll {
 }
 
 .top-header {
-    position: sticky;
+    position: fixed; /* Changed from sticky to fixed */
     top: 0;
     z-index: 1000;
     background-color: #3f484e; /* User-specified grey */
@@ -32,6 +42,14 @@ body.body-no-scroll {
     display: flex;
     justify-content: space-between; /* Adjust alignment */
     align-items: center;
+    height: var(--header-height); /* Set explicit height */
+    width: 100%;
+    transform: translateY(0);
+    transition: transform 0.3s ease-in-out;
+}
+
+.top-header.hidden {
+    transform: translateY(-100%);
 }
 
 .desktop-nav {
@@ -60,7 +78,7 @@ body.body-no-scroll {
 }
 
 .top-header img {
-    height: 90px; /* Increased height */
+    height: var(--header-height); /* Use CSS variable for consistency */
     clip-path: inset(1px);
     display: block; /* Ensure it behaves as a block element */
 }
@@ -72,13 +90,16 @@ body.body-no-scroll {
 
 .hero {
     position: relative;
-    height: calc(100vh - var(--header-height));
+    height: 100vh; /* Use standard vh for desktop */
+    min-height: 100vh; /* Ensure minimum height */
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
     color: white;
     overflow: hidden;
+    box-sizing: border-box;
+    margin-bottom: 0; /* Remove any bottom margin */
 }
 
 .comunidad-video-bg {
@@ -86,7 +107,7 @@ body.body-no-scroll {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100%; /* Match parent height */
     z-index: 1;
     pointer-events: none;
 }
@@ -109,15 +130,20 @@ body.body-no-scroll {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100%; /* Match parent height */
     background: rgba(0, 0, 0, 0.5);
     z-index: 2;
 }
 
 .hero-content {
-    position: relative;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 3;
     max-width: 800px;
+    width: 90%;
+    text-align: center;
 }
 
 .hero-content h1 {
@@ -193,21 +219,23 @@ body.body-no-scroll {
 main {
     padding: 1em;
     background-color: #1a1a1a; /* Dark background */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    margin-top: 0; /* Ensure no gap between hero and main content */
 }
 
 #faq {
+    position: relative;
+    overflow: hidden;
     margin-left: calc(-1em);
     margin-right: calc(-1em);
     width: calc(100% + 2em);
-    position: relative;
-    overflow: hidden;
 }
 
 @media (max-width: 768px) {
     #faq {
-        margin-left: calc(-1em);
-        margin-right: calc(-1em);
-        width: calc(100% + 2em);
+        margin-left: calc(-0.5em);
+        margin-right: calc(-0.5em);
+        width: calc(100% + 1em);
     }
 }
 
@@ -451,16 +479,15 @@ footer {
 /* New Mobile Menu Styles */
 .hamburger-icon {
     display: none; /* Hidden by default, shown in media query */
-    position: fixed;
-    top: 30px; /* Adjust to vertically center with header */
-    right: 20px;
-    z-index: 2001; /* Above the menu overlay */
     width: 30px;
     height: 22px;
     cursor: pointer;
     background: none;
     border: none;
     padding: 0;
+    margin-right: 20px;
+    z-index: 2001; /* Ensure it's above the side menu */
+    position: relative;
 }
 
 .hamburger-icon .bar {
@@ -925,14 +952,39 @@ footer {
     transform: translateY(0);
 }
 
+/* Desktop styles - override mobile-first approach */
+@media (min-width: 769px) {
+    :root {
+        --header-height: 90px; /* Desktop header height */
+    }
+}
+
 /* Media Queries for Mobile Responsiveness */
 @media (max-width: 768px) {
-    :root {
-        --header-height: var(--header-height-mobile);
+    html, body {
+        max-width: 100%;
+        overflow-x: hidden; /* Prevent horizontal scrolling on mobile */
+    }
+
+    main {
+        padding: 0.5em;
+        overflow-x: hidden; /* Prevent horizontal scrolling on mobile */
     }
 
     .top-header {
-        justify-content: center; /* Center logo on mobile */
+        justify-content: space-between; /* Space between logo and hamburger */
+        position: fixed; /* Keep fixed positioning on mobile too */
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+        padding: 0 10px; /* Add some padding for mobile */
+        height: var(--header-height); /* Use CSS variable for consistency */
+        transform: translateY(0);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .top-header.hidden {
+        transform: translateY(-100%);
     }
 
     .desktop-nav {
@@ -941,15 +993,13 @@ footer {
 
     .hamburger-icon {
         display: block; /* Show hamburger icon */
-        top: 15px; /* Adjust position for smaller header */
-    }
-
-    .top-header img {
-        height: var(--header-height-mobile); /* Use mobile header height */
+        z-index: 2001; /* Above the menu overlay */
     }
 
     .hero {
-        height: calc(100vh - var(--header-height-mobile));
+        height: 100vh; /* Use standard vh on mobile */
+        min-height: 100vh; /* Ensure minimum height */
+        max-height: 100vh; /* Prevent overflow */
     }
 
     .hero-content h1 {
@@ -967,24 +1017,18 @@ footer {
     }
 
     section {
-        padding: 2.5em 1em; /* Adjust section padding */
-        scroll-margin-top: var(--header-height-mobile);
+        padding: 2.5em 0.5em; /* Adjust section padding */
+        scroll-margin-top: var(--header-height);
     }
 
     #about {
-        margin: 4em 0;
-    }
-
-    #faq {
-        margin-left: calc(-1em);
-        margin-right: calc(-1em);
-        width: calc(100% + 2em);
+        margin: 2em 0; /* Reduce top margin on mobile */
     }
 
     #comunidad {
-        margin-left: calc(-1em);
-        margin-right: calc(-1em);
-        width: calc(100% + 2em);
+        margin-left: calc(-0.5em);
+        margin-right: calc(-0.5em);
+        width: calc(100% + 1em);
     }
     
     /* Reduce animation distance on mobile */
