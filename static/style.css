@@ -163,7 +163,7 @@ body.body-no-scroll {
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 5; /* Ensure it's above the overlay */
+    z-index: 10; /* Increased to ensure it's above all hero content */
 }
 
 .scroll-down-arrow a {
@@ -1014,6 +1014,16 @@ footer {
         font-size: 1.2em; /* Adjust font size for mobile */
     }
 
+    .scroll-down-arrow {
+        bottom: 20px; /* Reduce bottom spacing on mobile */
+        z-index: 10; /* Ensure it stays above all content */
+    }
+
+    .scroll-down-arrow a {
+        font-size: 1.8em; /* Slightly smaller on mobile */
+        padding: 10px; /* Add touch-friendly padding */
+    }
+
     .features {
         flex-direction: column; /* Stack features vertically */
         align-items: center;
@@ -1050,5 +1060,15 @@ footer {
     
     .slide-up {
         transform: translateY(30px);
+    }
+
+    .scroll-down-arrow {
+        bottom: 20px; /* Reduce bottom spacing on mobile */
+        z-index: 10; /* Ensure it stays above all content */
+    }
+
+    .scroll-down-arrow a {
+        font-size: 1.8em; /* Slightly smaller on mobile */
+        padding: 10px; /* Add touch-friendly padding */
     }
 }
