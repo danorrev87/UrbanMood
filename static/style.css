@@ -403,8 +403,10 @@ cite {
 #contact-form {
     display: flex;
     flex-direction: column;
-    max-width: 600px;
+    max-width: 800px;
+    width: 100%;
     margin: 0 auto;
+    padding: 0 1em; /* Add padding for mobile */
 }
 
 #contact-form input, #contact-form textarea {
@@ -414,6 +416,14 @@ cite {
     border-radius: 5px;
     background-color: #2a2a2a;
     color: #f4f4f4;
+}
+
+#contact-form textarea {
+    resize: none !important; /* Specifically prevent textarea resizing */
+    min-height: 120px !important; /* Set a fixed minimum height */
+    max-height: 120px !important; /* Set a fixed maximum height */
+    height: 120px !important; /* Set fixed height */
+    overflow-y: auto; /* Allow scrolling if content exceeds height */
 }
 
 #contact-form button {
@@ -1014,16 +1024,6 @@ footer {
         font-size: 1.2em; /* Adjust font size for mobile */
     }
 
-    .scroll-down-arrow {
-        bottom: 20px; /* Reduce bottom spacing on mobile */
-        z-index: 10; /* Ensure it stays above all content */
-    }
-
-    .scroll-down-arrow a {
-        font-size: 1.8em; /* Slightly smaller on mobile */
-        padding: 10px; /* Add touch-friendly padding */
-    }
-
     .features {
         flex-direction: column; /* Stack features vertically */
         align-items: center;
@@ -1063,12 +1063,18 @@ footer {
     }
 
     .scroll-down-arrow {
-        bottom: 20px; /* Reduce bottom spacing on mobile */
+        bottom: 50px; /* Move much higher on mobile to avoid overlap with Android action buttons */
         z-index: 10; /* Ensure it stays above all content */
     }
 
     .scroll-down-arrow a {
         font-size: 1.8em; /* Slightly smaller on mobile */
         padding: 10px; /* Add touch-friendly padding */
+    }
+
+    /* Mobile contact form adjustments */
+    #contact-form {
+        max-width: 100%;
+        padding: 0 0.5em;
     }
 }
