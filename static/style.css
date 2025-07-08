@@ -453,6 +453,57 @@ cite {
   text-align: center;
 }
 
+/* Email Contact CTA Section */
+#email-contact {
+    text-align: center;
+    padding: 2em 0;
+    background-color: #2a2a2a;
+    margin: 2em 0;
+    border-radius: 10px;
+}
+
+.email-contact-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.email-contact-content h2 {
+    color: #fff;
+    margin-bottom: 0.5em;
+    font-size: 2em;
+}
+
+.email-contact-content p {
+    color: #ccc;
+    margin-bottom: 1.5em;
+    font-size: 1.1em;
+}
+
+.email-cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    background-color: #a8b720;
+    color: #333;
+    padding: 1em 2em;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(168, 183, 32, 0.3);
+}
+
+.email-cta-button:hover {
+    background-color: #8c9a1c;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(168, 183, 32, 0.4);
+}
+
+.email-cta-button i {
+    font-size: 1.2em;
+}
+
 footer {
     background-color: #222; /* Slightly lighter dark for footer */
     color: white;
