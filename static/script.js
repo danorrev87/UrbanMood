@@ -27,44 +27,38 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         form.addEventListener('submit', async function(event) {
             event.preventDefault();
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-
+            
             // Show sending message
             formStatus.textContent = 'Enviando...';
             formStatus.style.color = '#333';
             formStatus.style.opacity = '1';
 
-            try {
-                const response = await fetch('https://mailer-app-5ebl.onrender.com/send-email', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
+            // Create a temporary form for submission
+            const tempForm = document.createElement('form');
+            tempForm.method = 'POST';
+            tempForm.action = 'https://formsubmit.co/f7b08eaf4e342e3cb10eaf11f1f6481a';
+            tempForm.style.display = 'none';
 
-                const responseData = await response.json();
-
-                if (response.ok && responseData.success) {
-                    formStatus.textContent = '¡Gracias por tu mensaje! Te contactaremos pronto.';
-                    formStatus.style.color = '#a8b720'; // Use project's light green for success
-                    formStatus.className = 'success';
-                    form.reset();
-                } else {
-                    formStatus.textContent = responseData.message || 'Oops! Hubo un problema al enviar tu formulario.';
-                    formStatus.className = 'error';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                formStatus.textContent = 'Oops! Hubo un problema al enviar tu formulario.';
-                formStatus.className = 'error';
+            // Copy all form data to the temporary form
+            const formData = new FormData(form);
+            for (let [key, value] of formData.entries()) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                tempForm.appendChild(input);
             }
 
-            // Fade out the status message after 5 seconds
-            setTimeout(() => {
-                formStatus.style.opacity = '0';
-            }, 5000);
+            // Add success redirect - use Formsubmit's thank you page
+            const redirectInput = document.createElement('input');
+            redirectInput.type = 'hidden';
+            redirectInput.name = '_next';
+            redirectInput.value = 'https://formsubmit.co/thankyou';
+            tempForm.appendChild(redirectInput);
+
+            // Submit the form
+            document.body.appendChild(tempForm);
+            tempForm.submit();
         });
     }
 
@@ -293,4 +287,36 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Check for success parameter in URL (from Formsubmit redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (urlParams.get('success') === 'true') {
+        const formStatus = document.getElementById('form-status');
+        if (formStatus) {
+            formStatus.textContent = '¡Gracias por tu mensaje! Te contactaremos pronto.';
+            formStatus.style.color = '#a8b720';
+            formStatus.style.opacity = '1';
+            formStatus.className = 'success';
+            
+            // If redirect parameter indicates contact section, scroll to it
+            if (urlParams.get('redirect') === 'contact') {
+                const contactSection = document.getElementById('contact');
+                if (contactSection) {
+                    setTimeout(() => {
+                        contactSection.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                }
+            }
+            
+            // Clear the URL parameters
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({path: newUrl}, '', newUrl);
+            
+            // Fade out after 5 seconds
+            setTimeout(() => {
+                formStatus.style.opacity = '0';
+            }, 5000);
+        }
+    }
 });

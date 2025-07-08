@@ -270,10 +270,21 @@
             <h2 class="fade-in">¿Listx para empezar?</h2>
             <p class="fade-in stagger-delay-1">Dejanos tus datos y te contactamos para coordinar tu primera clase de prueba. ¡Sin costo y sin compromiso!</p>
             <form id="contact-form" class="fade-in stagger-delay-2">
-                <input type="text" name="name" placeholder="Tu nombre" required>
-                <input type="email" name="email" placeholder="Tu email" required>
-                <input type="tel" name="phone" placeholder="Tu teléfono (opcional)">
-                <textarea name="message" placeholder="Contanos si tenés alguna duda" required></textarea>
+                <!-- Hidden fields to customize Formsubmit email in Spanish -->
+                <input type="hidden" name="_subject" value="Nuevo contacto desde UrbanMood - Solicitud de información">
+                <input type="hidden" name="_template" value="table">
+                <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="_cc" value="">
+                <input type="hidden" name="_format" value="plain">
+                
+                <!-- Custom Spanish introduction -->
+                <input type="hidden" name="_intro" value="Has recibido un nuevo mensaje de contacto desde el sitio web de UrbanMood.">
+                <input type="hidden" name="_outro" value="Por favor, responde a este mensaje lo antes posible.">
+                
+                <input type="text" name="Nombre completo" placeholder="Tu nombre" required>
+                <input type="email" name="Correo electrónico" placeholder="Tu email" required>
+                <input type="tel" name="Número de teléfono" placeholder="Tu teléfono (opcional)">
+                <textarea name="Consulta o mensaje" placeholder="Contanos si tenés alguna duda" required></textarea>
                 <button type="submit">¡Quiero empezar!</button>
             </form>
             <p id="form-status"></p>
