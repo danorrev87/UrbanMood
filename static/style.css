@@ -1,5 +1,41 @@
 /* CSS styles will go here */
 
+/* Loading Overlay */
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: #000000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+}
+
+#loading-overlay.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loading-content {
+    text-align: center;
+    color: white;
+    background: transparent;
+    padding: 20px;
+}
+
+.loading-logo {
+    max-width: 200px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -81,6 +117,14 @@ body.body-no-scroll {
     height: var(--header-height); /* Use CSS variable for consistency */
     clip-path: inset(1px);
     display: block; /* Ensure it behaves as a block element */
+}
+
+.top-header img.banner {
+    height: var(--header-height);
+    width: auto;
+    max-width: none;
+    object-fit: contain;
+    display: block;
 }
 
 .desktop-banner {
@@ -374,6 +418,11 @@ h2 {
     display: block;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    height: auto;
+    object-fit: cover;
+    /* Add fallback for when image fails to load */
+    background-color: #f5f5f5;
+    min-height: 200px;
 }
 
 .activity-item.active .toggle-icon {
@@ -836,7 +885,7 @@ footer {
 
 .floating-whatsapp {
     position: fixed;
-    bottom: 20px;
+    bottom: 80px; /* Increased from 20px to avoid Android nav bar */
     right: 20px;
     background-color: #25D366; /* WhatsApp Color */
     color: white;
@@ -849,7 +898,7 @@ footer {
     text-decoration: none;
     font-size: 2.5em;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    z-index: 1000;
+    z-index: 9999; /* Increased z-index to ensure visibility */
     opacity: 0;
     visibility: hidden;
     transform: translateY(20px);
@@ -1094,6 +1143,31 @@ footer {
         margin-left: calc(-0.5em);
         margin-right: calc(-0.5em);
         width: calc(100% + 1em);
+        padding: 4em 0; /* Reduce padding on mobile */
+        min-height: 80vh; /* Reduce height on mobile */
+    }
+
+    #comunidad .comunidad-content {
+        padding: 1.5em 1em; /* Reduce padding on mobile */
+        margin: 0 1em; /* Add margin for better spacing */
+        background-color: rgba(0, 0, 0, 0.7); /* Increase opacity for better text visibility */
+    }
+
+    #comunidad .comunidad-content h2 {
+        font-size: 2em; /* Slightly smaller on mobile */
+        margin-bottom: 1em;
+    }
+
+    .comunidad-list {
+        font-size: 1.1em; /* Slightly smaller on mobile */
+    }
+
+    .comunidad-list li {
+        margin: 0.8em 0; /* Reduce spacing between items */
+        padding: 0.8em; /* Add padding for better touch targets */
+        background-color: rgba(168, 183, 32, 0.1); /* Subtle background for better visibility */
+        border-radius: 8px;
+        border-left: 3px solid #a8b720;
     }
     
     /* Reduce animation distance on mobile */
@@ -1114,7 +1188,7 @@ footer {
     }
 
     .scroll-down-arrow {
-        bottom: 50px; /* Move much higher on mobile to avoid overlap with Android action buttons */
+        bottom: 80px; /* Increased from 50px to avoid Android nav bar overlap */
         z-index: 10; /* Ensure it stays above all content */
     }
 

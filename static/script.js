@@ -18,47 +18,120 @@ window.addEventListener('orientationchange', function() {
 // Also set on DOMContentLoaded to ensure it's available early
 document.addEventListener('DOMContentLoaded', function() {
     setVH();
-});
+    
+    // Loading overlay logic
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const heroVideo = document.querySelector('#background-video'); // Fixed: use the actual video ID
+    let videoLoaded = false;
+    let minimumTimeElapsed = false;
+    
+    function hideLoadingOverlay() {
+        if (loadingOverlay && videoLoaded && minimumTimeElapsed) {
+            loadingOverlay.classList.add('fade-out');
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 500);
+        }
+    }
+    
+    function checkVideoLoaded() {
+        videoLoaded = true;
+        hideLoadingOverlay();
+    }
+    
+    function checkMinimumTime() {
+        minimumTimeElapsed = true;
+        hideLoadingOverlay();
+    }
+    
+    // Set minimum display time
+    setTimeout(checkMinimumTime, 2500);
+    
+    // Wait for hero video to load
+    if (heroVideo) {
+        // Use multiple events to ensure video is ready
+        heroVideo.addEventListener('canplaythrough', checkVideoLoaded);
+        heroVideo.addEventListener('loadeddata', checkVideoLoaded);
+        
+        // Also check if video is already loaded
+        if (heroVideo.readyState >= 3) { // HAVE_FUTURE_DATA or higher
+            checkVideoLoaded();
+        }
+        
+        // Fallback: hide loading after 10 seconds even if video doesn't load
+        setTimeout(() => {
+            if (loadingOverlay && !loadingOverlay.classList.contains('fade-out')) {
+                loadingOverlay.classList.add('fade-out');
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 500);
+            }
+        }, 10000);
+    } else {
+        // If no video found, hide loading after minimum time
+        setTimeout(() => {
+            if (loadingOverlay && !loadingOverlay.classList.contains('fade-out')) {
+                loadingOverlay.classList.add('fade-out');
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 500);
+            }
+        }, 3000);
+    }
 
-document.addEventListener('DOMContentLoaded', function() {
+    // Form handling with AJAX (no page reload)
     const form = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
 
     if (form) {
-        form.addEventListener('submit', async function(event) {
-            event.preventDefault();
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent page reload
             
             // Show sending message
             formStatus.textContent = 'Enviando...';
             formStatus.style.color = '#333';
             formStatus.style.opacity = '1';
-
-            // Create a temporary form for submission
-            const tempForm = document.createElement('form');
-            tempForm.method = 'POST';
-            tempForm.action = 'https://formsubmit.co/f7b08eaf4e342e3cb10eaf11f1f6481a';
-            tempForm.style.display = 'none';
-
-            // Copy all form data to the temporary form
+            
+            // Prepare form data
             const formData = new FormData(form);
-            for (let [key, value] of formData.entries()) {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = key;
-                input.value = value;
-                tempForm.appendChild(input);
-            }
-
-            // Add success redirect - use Formsubmit's thank you page
-            const redirectInput = document.createElement('input');
-            redirectInput.type = 'hidden';
-            redirectInput.name = '_next';
-            redirectInput.value = 'https://formsubmit.co/thankyou';
-            tempForm.appendChild(redirectInput);
-
-            // Submit the form
-            document.body.appendChild(tempForm);
-            tempForm.submit();
+            
+            // Submit via fetch API
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Success
+                    formStatus.textContent = '¡Gracias por tu mensaje! Te contactaremos pronto.';
+                    formStatus.style.color = '#a8b720';
+                    formStatus.className = 'success';
+                    
+                    // Reset form
+                    form.reset();
+                    
+                    // Scroll to contact section to ensure message is visible
+                    const contactSection = document.querySelector('#contact');
+                    if (contactSection) {
+                        contactSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                    
+                    // Fade out after 5 seconds
+                    setTimeout(() => {
+                        formStatus.style.opacity = '0';
+                    }, 5000);
+                } else {
+                    throw new Error('Network response was not ok');
+                }
+            })
+            .catch(error => {
+                // Error
+                formStatus.textContent = 'Hubo un error al enviar el mensaje. Por favor intenta nuevamente.';
+                formStatus.style.color = '#e74c3c';
+                formStatus.className = 'error';
+                
+                console.error('Form submission error:', error);
+            });
         });
     }
 
@@ -92,18 +165,31 @@ document.addEventListener('DOMContentLoaded', function() {
         '/static/images/carousel3.jpg',
         '/static/images/carousel4.jpg',
         '/static/images/carousel5.jpg',
-        '/static/images/carousel6.jpg'
+        '/static/images/carousel6.jpg',
+        '/static/images/carousel7.jpg',
+        '/static/images/carousel8.jpg'
     ];
 
     if (slides.length > 0) {
         slides.forEach((slide, index) => {
             if (images[index]) {
                 slide.style.backgroundImage = `url('${images[index]}')`;
+                
+                // Preload images for better performance
+                const img = new Image();
+                img.src = images[index];
+                img.onerror = function() {
+                    console.error('Failed to load carousel image:', images[index]);
+                };
             }
         });
 
         let currentSlide = 0;
-        slides[currentSlide].classList.add('active'); // Show the first slide initially
+        
+        // Ensure first slide is visible immediately
+        if (slides[0]) {
+            slides[0].classList.add('active');
+        }
 
         setInterval(() => {
             slides[currentSlide].classList.remove('active');
@@ -131,9 +217,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Floating WhatsApp Icon Visibility
     const floatingWhatsApp = document.querySelector('.floating-whatsapp');
     const heroSection = document.querySelector('.hero');
-    console.log('floatingWhatsApp:', floatingWhatsApp);
-    console.log('heroSection:', heroSection);
-    if (floatingWhatsApp) floatingWhatsApp.classList.add('visible'); // TEMP: always show for debug
 
     function updateWhatsAppVisibility() {
         if (floatingWhatsApp && heroSection) {
@@ -288,35 +371,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    // Check for success parameter in URL (from Formsubmit redirect)
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    if (urlParams.get('success') === 'true') {
-        const formStatus = document.getElementById('form-status');
-        if (formStatus) {
-            formStatus.textContent = '¡Gracias por tu mensaje! Te contactaremos pronto.';
-            formStatus.style.color = '#a8b720';
-            formStatus.style.opacity = '1';
-            formStatus.className = 'success';
-            
-            // If redirect parameter indicates contact section, scroll to it
-            if (urlParams.get('redirect') === 'contact') {
-                const contactSection = document.getElementById('contact');
-                if (contactSection) {
-                    setTimeout(() => {
-                        contactSection.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
-                }
-            }
-            
-            // Clear the URL parameters
-            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            window.history.replaceState({path: newUrl}, '', newUrl);
-            
-            // Fade out after 5 seconds
-            setTimeout(() => {
-                formStatus.style.opacity = '0';
-            }, 5000);
-        }
-    }
+    // Add error handling for images
+    const allImages = document.querySelectorAll('img');
+    allImages.forEach(img => {
+        img.onerror = function() {
+            console.error('Failed to load image:', this.src);
+            this.style.backgroundColor = '#f5f5f5';
+            this.style.display = 'block';
+        };
+    });
 });

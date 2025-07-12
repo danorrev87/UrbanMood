@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UrbanMood - Gimnasios en Uruguay con un enfoque diverso</title>
+    <title>UrbanMood - Creando Comunidad</title>
     <meta name="description" content="UrbanMood es uno de los gimnasios más diversos en Uruguay, enfocado en crear una comunidad inclusiva. Ofrecemos entrenamiento personalizado y un ambiente libre de acoso.">
     <meta name="keywords" content="gimnasios en uruguay, urbanmood, gimnasios diversos, gimnasio en montevideo, entrenamiento personalizado, comunidad fitness">
     <meta name="author" content="UrbanMood">
-    <link rel="canonical" href="https://urbanmood.gym/">
+    <link rel="canonical" href="https://urbanmood.net/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://urbanmood.gym/">
-    <meta property="og:title" content="UrbanMood - Gimnasios en Uruguay con un enfoque diverso">
+    <meta property="og:url" content="https://urbanmood.net/">
+    <meta property="og:title" content="UrbanMood - Creando Comunidad">
     <meta property="og:description" content="UrbanMood es uno de los gimnasios más diversos en Uruguay, enfocado en crear una comunidad inclusiva. Ofrecemos entrenamiento personalizado y un ambiente libre de acoso.">
-    <meta property="og:image" content="https://urbanmood.gym/images/urbanmood_banner.png">
+    <meta property="og:image" content="https://urbanmood.net/images/urbanmood_banner.png">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://urbanmood.gym/">
-    <meta property="twitter:title" content="UrbanMood - Gimnasios en Uruguay con un enfoque diverso">
+    <meta property="twitter:url" content="https://urbanmood.net/">
+    <meta property="twitter:title" content="UrbanMood - Creando Comunidad">
     <meta property="twitter:description" content="UrbanMood es uno de los gimnasios más diversos en Uruguay, enfocado en crear una comunidad inclusiva. Ofrecemos entrenamiento personalizado y un ambiente libre de acoso.">
-    <meta property="twitter:image" content="https://urbanmood.gym/images/urbanmood_banner.png">
+    <meta property="twitter:image" content="https://urbanmood.net/images/urbanmood_banner.png">
 
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -29,6 +29,24 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/urbanmood-large-favicon.ico?v=5">
+    <link rel="icon" type="image/png" href="/static/urbanmood-large-favicon.png?v=5">
+    <link rel="apple-touch-icon" href="/static/urbanmood-large-favicon.png?v=5">
+    <meta name="msapplication-TileColor" content="#a8b720">
+    <meta name="theme-color" content="#a8b720">
+
+    <!-- Force favicon refresh -->
+    <script>
+    // Force favicon refresh to bypass cache
+    document.addEventListener('DOMContentLoaded', function() {
+        var link = document.querySelector("link[rel~='icon']");
+        if (link) {
+            link.href = link.href + '&t=' + Date.now();
+        }
+    });
+    </script>
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
@@ -45,8 +63,8 @@
         "addressCountry": "UY"
       },
       "telephone": "+59899188869",
-      "url": "https://urbanmood.gym/",
-      "image": "https://urbanmood.gym/images/urbanmood_banner.png",
+      "url": "https://urbanmood.net/",
+      "image": "https://urbanmood.net/images/urbanmood_banner.png",
       "openingHoursSpecification": [
         {
           "@type": "OpeningHoursSpecification",
@@ -80,6 +98,13 @@
     </script>
 </head>
 <body>
+<!-- Loading Overlay -->
+<div id="loading-overlay">
+    <div class="loading-content">
+        <img src="{{ url_for('static', filename='images/urbanmood-loading.gif') }}" alt="UrbanMood" class="loading-logo">
+    </div>
+</div>
+
 <div class="top-header">
     <a href="#home"><img src="/static/images/urbanmood_banner.png" alt="UrbanMood Banner" class="banner"></a>
     <nav class="desktop-nav">
@@ -88,7 +113,7 @@
             <li><a href="#about">Sobre nosotrxs</a></li>
             <li><a href="#actividades">Actividades</a></li>
             <li><a href="#comunidad">Comunidad</a></li>
-            <li><a href="#faq">Preguntas Frecuentes</a></li>
+            <li><a href="#faq">Preguntas frecuentes</a></li>
             <li><a href="#contact">Contacto</a></li>
         </ul>
     </nav>
@@ -106,7 +131,7 @@
             <li><a href="#about">Sobre nosotrxs</a></li>
             <li><a href="#actividades">Actividades</a></li>
             <li><a href="#comunidad">Comunidad</a></li>
-            <li><a href="#faq">Preguntas Frecuentes</a></li>
+            <li><a href="#faq">Preguntas frecuentes</a></li>
             <li><a href="#contact">Contacto</a></li>
         </ul>
     </nav>
@@ -126,7 +151,7 @@
                 Entrenamiento sin estereotipos<br>
                 Nos movemos desde el disfrute, no desde la exigencia.
             </p>
-            <a href="https://wa.me/59899188869?text=Vengo%20de%20la%20web%20de%20UrbanMood%20y%20quisiera%20asistencia%20%3A%29" class="cta-button" id="cta-button" target="_blank" rel="noopener" aria-label="WhatsApp">Reservá tu clase de prueba</a>
+            <a href="https://wa.me/59899188869?text=Vengo%20de%20la%20web%20de%20UrbanMood%20y%20quisiera%20asistencia%20😊" class="cta-button" id="cta-button" target="_blank" rel="noopener" aria-label="WhatsApp">Reservá tu clase de prueba</a>
         </div>
         <div class="scroll-down-arrow">
             <a href="#about" aria-label="Scroll down">
@@ -225,7 +250,7 @@
         </section>
 
         <section id="faq">
-            <h2 class="fade-in">Preguntas Frecuentes</h2>
+            <h2 class="fade-in">Preguntas frecuentes</h2>
             <div class="activity-list">
                 <div class="activity-item slide-up stagger-delay-1">
                     <div class="activity-header">
@@ -269,22 +294,15 @@
         <section id="contact">
             <h2 class="fade-in">¿Listx para empezar?</h2>
             <p class="fade-in stagger-delay-1">Dejanos tus datos y te contactamos para coordinar tu primera clase de prueba. ¡Sin costo y sin compromiso!</p>
-            <form id="contact-form" class="fade-in stagger-delay-2">
-                <!-- Hidden fields to customize Formsubmit email in Spanish -->
-                <input type="hidden" name="_subject" value="Nuevo contacto desde UrbanMood - Solicitud de información">
-                <input type="hidden" name="_template" value="table">
+            <form id="contact-form" class="fade-in stagger-delay-2" action="https://formsubmit.co/f7b08eaf4e342e3cb10eaf11f1f6481a" method="POST">
+                <!-- Essential Formsubmit configuration -->
+                <input type="hidden" name="_subject" value="Nuevo contacto desde UrbanMood">
                 <input type="hidden" name="_captcha" value="false">
-                <input type="hidden" name="_cc" value="">
-                <input type="hidden" name="_format" value="plain">
                 
-                <!-- Custom Spanish introduction -->
-                <input type="hidden" name="_intro" value="Has recibido un nuevo mensaje de contacto desde el sitio web de UrbanMood.">
-                <input type="hidden" name="_outro" value="Por favor, responde a este mensaje lo antes posible.">
-                
-                <input type="text" name="Nombre completo" placeholder="Tu nombre" required>
-                <input type="email" name="Correo electrónico" placeholder="Tu email" required>
-                <input type="tel" name="Número de teléfono" placeholder="Tu teléfono (opcional)">
-                <textarea name="Consulta o mensaje" placeholder="Contanos si tenés alguna duda" required></textarea>
+                <input type="text" name="Nombre" placeholder="Tu nombre" required>
+                <input type="email" name="Email" placeholder="Tu email" required>
+                <input type="tel" name="Telefono" placeholder="Tu teléfono (opcional)">
+                <textarea name="Mensaje" placeholder="Contanos si tenés alguna duda" required></textarea>
                 <button type="submit">¡Quiero empezar!</button>
             </form>
             <p id="form-status"></p>
@@ -306,7 +324,7 @@
     <footer>
         <div class="social-media">
             <a href="https://www.instagram.com/urbanmood.gym" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="https://wa.me/59899188869?text=Vengo%20de%20la%20web%20de%20UrbanMood%20y%20quisiera%20asistencia%20%3A%29" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+            <a href="https://wa.me/59899188869?text=Vengo%20de%20la%20web%20de%20UrbanMood%20y%20quisiera%20asistencia%20😊" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
         </div>
         <div class="footer-info">
             <p>📍 Maldonado 1508</p>
@@ -315,7 +333,7 @@
         <p class="copyright">&copy; 2024 UrbanMood. Todos los derechos reservados.</p>
     </footer>
 
-<a href="https://wa.me/5491123875429?text=Hola!%20Quería%20hacer%20una%20consulta%20sobre%20las%20clases" class="floating-whatsapp" target="_blank" aria-label="WhatsApp">
+<a href="https://wa.me/59899188869?text=Vengo%20de%20la%20web%20de%20UrbanMood%20y%20quisiera%20asistencia%20😊" class="floating-whatsapp" target="_blank" aria-label="WhatsApp">
     <i class="fab fa-whatsapp"></i>
 </a>
 
