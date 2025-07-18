@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Important pages
+Allow: /index.html
+Allow: /*.css
+Allow: /*.js
+Allow: /images/
+Allow: /videos/
+
+# Sitemap location
+Sitemap: https://urbanmood.net/sitemap.xml
+
+# Crawl delay (optional, helps with server load)
+Crawl-delay: 1
