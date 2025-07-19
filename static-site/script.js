@@ -381,3 +381,150 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     });
 });
+
+// UrbanMood 2 Countdown Timer
+document.addEventListener('DOMContentLoaded', function() {
+    // Set the countdown target date - Today at 19:20
+    const countdownDate = new Date("2025-07-18T19:20:00");
+    
+    const targetTime = countdownDate.getTime();
+    
+    // Get countdown elements
+    const daysElement = document.getElementById('days');
+    const hoursElement = document.getElementById('hours');
+    const minutesElement = document.getElementById('minutes');
+    const secondsElement = document.getElementById('seconds');
+    const revealVideo = document.getElementById('reveal-video');
+    const countdownTimer = document.getElementById('countdown-timer');
+    const countdownContent = document.querySelector('.countdown-content');
+    const announcementVideo = document.getElementById('announcement-video');
+    const closeVideoBtn = document.getElementById('close-video');
+    
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const timeLeft = targetTime - now;
+        
+        if (timeLeft > 0) {
+            // Calculate time units
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+            
+            // Update display with leading zeros
+            if (daysElement) daysElement.textContent = days.toString().padStart(2, '0');
+            if (hoursElement) hoursElement.textContent = hours.toString().padStart(2, '0');
+            if (minutesElement) minutesElement.textContent = minutes.toString().padStart(2, '0');
+            if (secondsElement) secondsElement.textContent = seconds.toString().padStart(2, '0');
+            
+            // Add pulse effect to seconds
+            if (secondsElement && seconds !== parseInt(secondsElement.dataset.lastSecond || '0')) {
+                secondsElement.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    secondsElement.style.transform = 'scale(1)';
+                }, 200);
+                secondsElement.dataset.lastSecond = seconds.toString();
+            }
+        } else {
+            // Countdown complete!
+            countdownComplete();
+        }
+    }
+    
+    function countdownComplete() {
+        // Stop the countdown
+        clearInterval(countdownInterval);
+        
+        // Add completion animation
+        if (countdownContent) {
+            countdownContent.classList.add('countdown-complete');
+        }
+        
+        // Hide countdown and show video after animation
+        setTimeout(() => {
+            if (revealVideo) {
+                revealVideo.classList.add('show');
+                // Auto-play the announcement video
+                if (announcementVideo) {
+                    announcementVideo.play().catch(e => {
+                        console.log('Auto-play prevented:', e);
+                    });
+                }
+            }
+        }, 2000);
+        
+        // Optional: Add confetti or fireworks effect here
+        createCelebrationEffect();
+    }
+    
+    function createCelebrationEffect() {
+        // Simple celebration effect with particles
+        const colors = ['#a8b720', '#ff6b35', '#ffffff'];
+        
+        for (let i = 0; i < 50; i++) {
+            setTimeout(() => {
+                const particle = document.createElement('div');
+                particle.style.cssText = `
+                    position: fixed;
+                    width: 10px;
+                    height: 10px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    border-radius: 50%;
+                    pointer-events: none;
+                    z-index: 9999;
+                    left: ${Math.random() * 100}vw;
+                    top: -10px;
+                    animation: fall 3s linear forwards;
+                `;
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 3000);
+            }, i * 100);
+        }
+        
+        // Add the falling animation to CSS if not already present
+        if (!document.querySelector('#celebration-styles')) {
+            const style = document.createElement('style');
+            style.id = 'celebration-styles';
+            style.textContent = `
+                @keyframes fall {
+                    to {
+                        transform: translateY(100vh) rotate(360deg);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+    
+    // Close video functionality
+    if (closeVideoBtn) {
+        closeVideoBtn.addEventListener('click', function() {
+            if (revealVideo) {
+                revealVideo.classList.remove('show');
+                if (announcementVideo) {
+                    announcementVideo.pause();
+                    announcementVideo.currentTime = 0;
+                }
+            }
+        });
+    }
+    
+    // Close video when clicking outside
+    if (revealVideo) {
+        revealVideo.addEventListener('click', function(e) {
+            if (e.target === revealVideo) {
+                closeVideoBtn.click();
+            }
+        });
+    }
+    
+    // Initialize countdown
+    updateCountdown();
+    const countdownInterval = setInterval(updateCountdown, 1000);
+    
+    // For testing purposes - uncomment the line below to trigger countdown complete after 5 seconds
+    // setTimeout(countdownComplete, 5000);
+});

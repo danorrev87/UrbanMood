@@ -188,6 +188,7 @@
             <li><a href="#home">Inicio</a></li>
             <li><a href="#about">Sobre nosotrxs</a></li>
             <li><a href="#actividades">Actividades</a></li>
+            <li><a href="#countdown-section">¿Qué viene?</a></li>
             <li><a href="#comunidad">Comunidad</a></li>
             <li><a href="#faq">Preguntas frecuentes</a></li>
             <li><a href="#contact">Contacto</a></li>
@@ -206,6 +207,7 @@
             <li><a href="#home">Inicio</a></li>
             <li><a href="#about">Sobre nosotrxs</a></li>
             <li><a href="#actividades">Actividades</a></li>
+            <li><a href="#countdown-section">¿Qué viene?</a></li>
             <li><a href="#comunidad">Comunidad</a></li>
             <li><a href="#faq">Preguntas frecuentes</a></li>
             <li><a href="#contact">Contacto</a></li>
@@ -304,6 +306,53 @@
                 </div>
             </div>
         </section>
+        
+        <!-- Mystery Countdown Section -->
+        <section id="countdown-section" class="countdown-container">
+            <div class="countdown-content">
+                <h2 class="countdown-title fade-in">
+                    <span class="countdown-mystery">Algo grande se acerca...</span>
+                </h2>
+                <p class="countdown-subtitle fade-in stagger-delay-1">La cuenta regresiva ha comenzado</p>
+                
+                <div id="countdown-timer" class="countdown-timer fade-in stagger-delay-2">
+                    <div class="time-unit">
+                        <span id="days" class="time-number">00</span>
+                        <span class="time-label">DÍAS</span>
+                    </div>
+                    <div class="time-unit">
+                        <span id="hours" class="time-number">00</span>
+                        <span class="time-label">HORAS</span>
+                    </div>
+                    <div class="time-unit">
+                        <span id="minutes" class="time-number">00</span>
+                        <span class="time-label">MINUTOS</span>
+                    </div>
+                    <div class="time-unit">
+                        <span id="seconds" class="time-number">00</span>
+                        <span class="time-label">SEGUNDOS</span>
+                    </div>
+                </div>
+                
+                <p class="countdown-description fade-in stagger-delay-3">
+                    ¿Estás preparadx para lo que viene? 🤫
+                </p>
+            </div>
+            
+            <!-- Hidden video that will be revealed -->
+            <div id="reveal-video" class="reveal-video-container">
+                <div class="reveal-video-content">
+                    <button id="close-video" class="close-video-btn">&times;</button>
+                    <video id="announcement-video" controls poster="images/carousel1.jpg">
+                        <source src="videos/mystery-announcement.mp4" type="video/mp4">
+                        Tu navegador no soporta video HTML5.
+                    </video>
+                    <h3>¡El misterio se revela!</h3>
+                    <p>Descubrí lo que hemos estado preparando para vos.</p>
+                </div>
+            </div>
+        </section>
+        
         <div class="section-separator"></div>
         <section id="comunidad">
             <div class="image-carousel">
