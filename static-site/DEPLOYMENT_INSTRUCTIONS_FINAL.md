@@ -130,7 +130,7 @@ Ensure these files are in the root (`public_html/`):
 - **Website**: https://urbanmood.net/
 - **Robots**: https://urbanmood.net/robots.txt
 - **Sitemap**: https://urbanmood.net/sitemap.xml
-- **Email**: contacto@urbanmood.net
+- **Email**: urbanmoodfitness@gmail.com
 - **WhatsApp**: +59899188869
 - **Instagram**: @urbanmood.gym
 
