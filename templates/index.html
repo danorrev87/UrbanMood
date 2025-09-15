@@ -62,13 +62,19 @@
       "@type": "SportsActivityLocation",
       "name": "UrbanMood",
       "description": "Gimnasio y espacio de entrenamiento diverso en Uruguay, enfocado en comunidad y bienestar.",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Maldonado 1508",
-        "addressLocality": "Montevideo",
-        "postalCode": "11200",
-        "addressCountry": "UY"
-      },
+            "address": [{
+                "@type": "PostalAddress",
+                "streetAddress": "Maldonado 1508",
+                "addressLocality": "Montevideo",
+                "postalCode": "11200",
+                "addressCountry": "UY"
+            },{
+                "@type": "PostalAddress",
+                "streetAddress": "18 de Julio 2091",
+                "addressLocality": "Montevideo",
+                "postalCode": "11200",
+                "addressCountry": "UY"
+            }],
       "telephone": "+59899188869",
       "url": "https://urbanmood.net/",
       "image": "https://urbanmood.net/images/urbanmood_banner.png",
@@ -228,7 +234,20 @@
                     </div>
                     <div class="activity-content">
                         <p>Actividades dirigidas en todos los horarios</p>
-                        <img src="/static/images/clases-dropdown.jpg" alt="Clases UrbanMood" class="dropdown-image" style="width:100%;max-width:350px;margin:1em auto;display:block;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+                        <div class="schedule-tabs">
+                            <div class="tab-buttons">
+                                <button type="button" class="tab-btn active" data-target="#sched-palermo">Palermo</button>
+                                <button type="button" class="tab-btn" data-target="#sched-cordon">Cordón</button>
+                            </div>
+                            <div class="tab-panels">
+                                <div id="sched-palermo" class="tab-panel active">
+                                    <img src="/static/images/clases-palermo.png" alt="Clases Palermo UrbanMood" class="dropdown-image" loading="lazy">
+                                </div>
+                                <div id="sched-cordon" class="tab-panel">
+                                    <img src="/static/images/clases-cordon.png" alt="Clases Cordón UrbanMood" class="dropdown-image" loading="lazy">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -292,7 +311,7 @@
                         <span class="toggle-icon">+</span>
                     </div>
                     <div class="activity-content">
-                        <p>Encontranos en Maldonado 1508. ¡Te esperamos!</p>
+                        <p>Encontranos en Maldonado 1508 y ahora también en 18 de Julio 2091. ¡Te esperamos!</p>
                     </div>
                 </div>
             </div>
@@ -301,10 +320,15 @@
         <section id="contact">
             <h2 class="fade-in">¿Listx para empezar?</h2>
             <p class="fade-in stagger-delay-1">Dejanos tus datos y te contactamos para coordinar tu primera clase de prueba. ¡Sin costo y sin compromiso!</p>
-            <form id="contact-form" class="fade-in stagger-delay-2" action="https://formsubmit.co/f7b08eaf4e342e3cb10eaf11f1f6481a" method="POST">
-                <!-- Essential Formsubmit configuration -->
+            <form id="contact-form" class="fade-in stagger-delay-2" action="https://formsubmit.co/urbanmoodfitness@gmail.com" method="POST">
+                <!-- FormSubmit configuration -->
                 <input type="hidden" name="_subject" value="Nuevo contacto desde UrbanMood">
                 <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="_template" value="table">
+                <input type="hidden" name="_autoresponse" value="¡Gracias por escribirnos! Te responderemos muy pronto.">
+                <input type="hidden" name="_next" value="https://urbanmood.net/#gracias">
+                <!-- Honeypot field (hidden from users) -->
+                <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
                 
                 <input type="text" name="Nombre" placeholder="Tu nombre" required>
                 <input type="email" name="Email" placeholder="Tu email" required>
@@ -320,9 +344,9 @@
             <div class="email-contact-content">
                 <h2>¿Preferís escribirnos?</h2>
                 <p>También podés contactarnos directamente por email</p>
-                <a href="mailto:contacto@urbanmood.net" class="email-cta-button">
+                <a href="mailto:urbanmoodfitness@gmail.com" class="email-cta-button">
                     <i class="fas fa-envelope"></i>
-                    contacto@urbanmood.net
+                    urbanmoodfitness@gmail.com
                 </a>
             </div>
         </section>
@@ -334,7 +358,7 @@
             <a href="https://wa.me/59899188869?text=Vengo%20de%20la%20web%20de%20UrbanMood%20y%20quisiera%20asistencia%20😊" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
         </div>
         <div class="footer-info">
-            <p>📍 Maldonado 1508</p>
+            <p>📍 Maldonado 1508 | 18 de Julio 2091</p>
             <p>⏰ Lunes a Viernes de 7 a 22hs | Sábados de 9 a 13hs</p>
         </div>
         <p class="copyright">&copy; 2024 UrbanMood. Todos los derechos reservados.</p>

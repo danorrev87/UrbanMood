@@ -170,6 +170,40 @@ document.addEventListener('DOMContentLoaded', function() {
         '/static/images/carousel8.jpg'
     ];
 
+        // Schedule tabs logic
+        function initScheduleTabs(root=document) {
+            const containers = root.querySelectorAll('.schedule-tabs');
+            containers.forEach(container => {
+                const buttons = container.querySelectorAll('.tab-btn');
+                const panels = container.querySelectorAll('.tab-panel');
+                buttons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        if (btn.classList.contains('active')) return;
+                        buttons.forEach(b => b.classList.remove('active'));
+                        panels.forEach(p => p.classList.remove('active'));
+                        btn.classList.add('active');
+                        const target = container.querySelector(btn.dataset.target);
+                        if (target) target.classList.add('active');
+                    });
+                });
+            });
+        }
+        initScheduleTabs();
+
+        // Fallback for missing schedule images
+        const scheduleImgs = document.querySelectorAll('.schedule-tabs img.dropdown-image');
+        scheduleImgs.forEach(img => {
+            img.addEventListener('error', () => {
+                if (img.dataset.fallbackApplied) return;
+                img.dataset.fallbackApplied = '1';
+                const loc = img.alt.includes('Palermo') ? 'Palermo' : 'Cordón';
+                    img.replaceWith(Object.assign(document.createElement('div'), {
+                        className: 'dropdown-image schedule-fallback',
+                        innerHTML: `<div style="padding:1.5em;text-align:center;font-size:0.85rem;background:#2a2f33;border:1px dashed #555;border-radius:10px;">Horario de ${loc} próximamente.<br>Cargá la imagen clases-${loc.toLowerCase()}.png</div>`
+                }));
+            });
+        });
+
     if (slides.length > 0) {
         slides.forEach((slide, index) => {
             if (images[index]) {

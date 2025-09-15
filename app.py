@@ -1,14 +1,27 @@
 from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 import os
+import logging
 from mailersend import emails
 from dotenv import load_dotenv
 
 load_dotenv() # Load environment variables from .env file
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
+
+# Logging configuration (idempotent if gunicorn already sets handlers)
+if not logging.getLogger().handlers:
+    logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format='%(asctime)s %(levelname)s %(name)s %(message)s')
+logger = logging.getLogger("urbanmood")
+
 # Allow CORS for the frontend, both local and deployed
-CORS(app, resources={r"/send-email": {"origins": ["http://localhost:8000", "https://urbanmood.onrender.com"]}})
+allowed_origins = [
+    "http://localhost:8000",
+    "http://localhost:5001",
+    "https://urbanmood.onrender.com",
+    "https://urbanmood.net"
+]
+CORS(app, resources={r"/send-email": {"origins": allowed_origins}})
 
 @app.route('/send-email', methods=['POST'])
 def send_email():
@@ -37,12 +50,12 @@ def send_email():
     mail_body = {}
     mail_from = {
         "name": "Contacto UrbanMood",
-        "email": "contacto@urbanmood.net", # Your verified "from" email
+        "email": "urbanmoodfitness@gmail.com", # Updated verified from email
     }
     recipients = [
         {
             "name": "Danilo Orrego",
-            "email": "dorrego@urbanmood.net",
+            "email": "urbanmoodfitness@gmail.com",
         }
     ]
     
@@ -158,9 +171,13 @@ def send_email():
             return jsonify({"success": False, "message": "Failed to send email."}), 500
 
     except Exception as e:
-        # This will catch exceptions within the Python code itself
-        print(f"An error occurred while sending email: {e}")
+        logger.exception("Error while sending email")
         return jsonify({"success": False, "message": "An error occurred while sending the email."}), 500
+
+@app.route('/health')
+def health():
+    """Simple healthcheck for uptime monitoring."""
+    return jsonify({"status": "ok"})
 
 @app.route('/')
 def index():
@@ -170,5 +187,19 @@ def index():
 def static_files(filename):
     return send_from_directory(app.static_folder, filename)
 
+@app.after_request
+def add_security_headers(response):
+    # Basic security & caching headers for static assets
+    response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
+    response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+    # Light caching: cache static assets (not root HTML) for 1 day
+    if request.path.startswith('/static/'):
+        response.headers.setdefault('Cache-Control', 'public, max-age=86400, immutable')
+    return response
+
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    debug = os.getenv('FLASK_DEBUG', '').lower() in ('1', 'true', 'yes')
+    port = int(os.getenv('PORT', '5001'))
+    logger.info("Starting development server on port %s (debug=%s)", port, debug)
+    app.run(debug=debug, host='0.0.0.0', port=port)

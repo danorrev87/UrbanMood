@@ -380,4 +380,40 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.display = 'block';
         };
     });
+
+    // Schedule tabs logic
+    function initScheduleTabs(root=document) {
+      const containers = root.querySelectorAll('.schedule-tabs');
+      containers.forEach(container => {
+        const buttons = container.querySelectorAll('.tab-btn');
+        const panels = container.querySelectorAll('.tab-panel');
+        buttons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (btn.classList.contains('active')) return;
+            buttons.forEach(b => b.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            const target = container.querySelector(btn.dataset.target);
+            if (target) target.classList.add('active');
+          });
+        });
+      });
+    }
+    initScheduleTabs();
+
+    // Update schedule image fallback (png extension)
+    (function(){
+      const imgs = document.querySelectorAll('.schedule-tabs img.dropdown-image');
+      imgs.forEach(img => {
+        img.addEventListener('error', () => {
+          if (img.dataset.fallbackApplied) return;
+          img.dataset.fallbackApplied='1';
+          const loc = img.alt.includes('Palermo') ? 'Palermo' : 'Cordón';
+          const div = document.createElement('div');
+          div.className='dropdown-image schedule-fallback';
+          div.innerHTML = `<div style="padding:1.5em;text-align:center;font-size:0.85rem;background:#2a2f33;border:1px dashed #555;border-radius:10px;">Horario de ${loc} próximamente.<br>Subí la imagen clases-${loc.toLowerCase()}.png</div>`;
+          img.replaceWith(div);
+        });
+      });
+    })();
 });

@@ -429,6 +429,23 @@ h2 {
     transform: rotate(45deg);
 }
 
+/* Schedule Tabs */
+.schedule-tabs { margin-top: 1em; }
+.schedule-tabs .tab-buttons { display: flex; gap: 8px; justify-content: center; margin-bottom: 1em; flex-wrap: wrap; width:100%; }
+.schedule-tabs .tab-btn { -webkit-tap-highlight-color:transparent; flex:1 1 auto; min-width:120px; text-align:center; background:#3f484e; border:1px solid #555; color:#fff; padding:10px 18px; border-radius:14px; cursor:pointer; font-size:0.9rem; font-weight:600; line-height:1.1; letter-spacing:.5px; transition:background .25s,border-color .25s,color .25s, transform .15s; position:relative; }
+.schedule-tabs .tab-btn:focus-visible { outline:2px solid #a8b720; outline-offset:2px; }
+.schedule-tabs .tab-btn:active { transform:scale(.96); }
+.schedule-tabs .tab-btn.active { background:#a8b720; border-color:#a8b720; color:#0d0d0d; box-shadow:0 0 0 2px #a8b72033; }
+.schedule-tabs .tab-btn:hover:not(.active) { background:#697279; }
+.schedule-tabs .tab-panels { width:100%; }
+@media (max-width: 640px) {
+    .schedule-tabs .tab-buttons { gap:6px; }
+    .schedule-tabs .tab-btn { padding:10px 12px; font-size:0.8rem; min-width:100px; border-radius:12px; }
+}
+.schedule-tabs .tab-panel { display:none; animation: fadeIn .35s ease; }
+.schedule-tabs .tab-panel.active { display:block; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(4px);} to { opacity:1; transform: translateY(0);} }
+
 .testimonial {
     text-align: center;
     margin-bottom: 2em;
