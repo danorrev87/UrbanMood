@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title }} - Admin</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background:#0d0d0d; color:#e5e7e8; font-family:'Poppins',sans-serif; margin:0; padding:50px 40px; }
+    h1 { color:#c2d03a; font-size:1.6rem; margin:0 0 14px; }
+    .card { background:#121212; border:1px solid #242424; border-radius:18px; padding:34px 38px; max-width:760px; }
+    p.desc { color:#9ca3a8; font-size:.85rem; line-height:1.5; margin:0 0 26px; }
+    .placeholder-box { border:1px dashed #333; padding:26px; border-radius:14px; font-size:.75rem; line-height:1.5; background:#181818; }
+    a.back { color:#c2d03a; text-decoration:none; font-size:.65rem; letter-spacing:.08em; font-weight:600; text-transform:uppercase; }
+    a.back:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+{% include '_admin_sidebar.html' %}
+<h1>{{ title }}</h1>
+<div class="card">
+  <p class="desc">{{ description }}</p>
+  <div class="placeholder-box">
+    <strong>En desarrollo.</strong><br>
+    Este módulo todavía no está implementado. Aquí vas a poder administrar {{ title.lower() }}.
+  </div>
+</div>
+</body>
+</html>

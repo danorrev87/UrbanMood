@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>UrbanMood - Usuarios</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background:#0d0d0d;color:#e5e7e8;font-family:'Poppins',sans-serif;margin:0;padding:40px; }
+    h1 { color:#c2d03a;margin:0 0 28px;font-size:2rem; }
+    table { width:100%;border-collapse:collapse;background:#121212;border:1px solid #262626;border-radius:12px;overflow:hidden; }
+    th,td { padding:10px 14px;font-size:.85rem;text-align:left; }
+    th { background:#181818;font-weight:600;letter-spacing:.05em;text-transform:uppercase;font-size:.7rem;color:#9ba1a6; }
+    tbody tr { border-top:1px solid #1f1f1f; }
+    tbody tr:hover { background:#1b1b1b; }
+    .status-badge { padding:2px 8px;border-radius:999px;font-size:.6rem;font-weight:600;letter-spacing:.05em; }
+    .inactive { background:#402020;color:#ff8d8d; }
+    .active { background:#1f3c1f;color:#7edc7e; }
+    .role { text-transform:capitalize; }
+    form#create-user { display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;background:#121212;padding:16px 18px;border:1px solid #262626;border-radius:12px; }
+    form#create-user input,form#create-user select { background:#181818;color:#eee;border:1px solid #303030;border-radius:8px;padding:8px 10px;font-size:.8rem; }
+    form#create-user button { background:#b6c628;color:#111;border:none;padding:10px 16px;border-radius:10px;font-weight:600;cursor:pointer;font-size:.8rem; }
+    #msg { font-size:.75rem;margin-top:-12px;margin-bottom:16px; }
+    a.logout { position:fixed;top:16px;right:20px;color:#c2d03a;text-decoration:none;font-size:.75rem;font-weight:600; }
+    a.logout:hover { text-decoration:underline; }
+    td.actions { white-space:nowrap; }
+    .icon-btn { background:#1c1c1c;border:1px solid #2c2c2c;color:#c2d03a;padding:4px 8px;border-radius:6px;font-size:.65rem;font-weight:600;cursor:pointer;margin-right:4px; }
+    .icon-btn.danger { color:#ff7b7b; }
+    .icon-btn.save { color:#7edc7e; }
+    .icon-btn:hover { background:#252525; }
+    tr.editing td { background:#181a10; }
+    td input.inline, td select.inline { width:100%;background:#181818;border:1px solid #303030;color:#eee;border-radius:6px;padding:4px 6px;font-size:.7rem; }
+    td input.inline:focus, td select.inline:focus { outline:none;border-color:#b6c628; }
+    .fade { transition:background-color .6s ease; }
+  </style>
+</head>
+<body>
+{% include '_admin_sidebar.html' %}
+<div style="padding:40px;">
+  <a class="logout" href="/logout" style="right:30px;">Salir</a>
+  <h1>Usuarios</h1>
+  <form id="create-user" action="javascript:void(0);">
+    <input type="text" name="name" placeholder="Nombre" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <select name="role">
+      <option value="user">Usuario</option>
+      <option value="coach">Coach</option>
+      <option value="admin">Admin</option>
+    </select>
+    <button type="submit">Crear + Invitar</button>
+  </form>
+  <p id="msg"></p>
+  <table>
+    <thead>
+  <tr><th>Email</th><th>Nombre</th><th>Género</th><th>Rol</th><th>Estado</th><th>Creado</th><th>Acciones</th></tr>
+    </thead>
+    <tbody id="user-rows">
+      {% for u in users %}
+        <tr data-id="{{ u.id }}" class="fade">
+          <td class="email"><a href="/admin/users/{{ u.id }}" style="color:#c2d03a;text-decoration:none;">{{ u.email }}</a></td>
+          <td class="name" data-value="{{ u.name or '' }}">{{ u.name or '' }}</td>
+          <td class="gender">{{ u.gender or '' }}</td>
+          <td class="role" data-value="{{ u.role.value }}">{{ u.role.value }}</td>
+          <td class="status" data-value="{{ '1' if u.is_active else '0' }}">{% if u.is_active %}<span class="status-badge active">Activo</span>{% else %}<span class="status-badge inactive">Pendiente</span>{% endif %}</td>
+          <td>{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '' }}</td>
+          <td class="actions">
+            <button class="icon-btn edit">Editar</button>
+            <button class="icon-btn save" style="display:none;">Guardar</button>
+            <button class="icon-btn cancel" style="display:none;">Cancelar</button>
+            <button class="icon-btn danger delete">Borrar</button>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+<script>
+  const form = document.getElementById('create-user');
+  const msg = document.getElementById('msg');
+  const rows = document.getElementById('user-rows');
+  form.addEventListener('submit', async () => {
+    msg.textContent='';
+    const data = Object.fromEntries(new FormData(form).entries());
+    try {
+      const res = await fetch('/admin/users/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+      const j = await res.json();
+      if(!j.success){ msg.textContent = j.message || 'Error'; msg.style.color = '#ff7b7b'; return; }
+      msg.textContent='Usuario creado e invitación enviada'; msg.style.color='#7edc7e';
+      // Reload simple way
+      location.reload();
+    } catch(e){ msg.textContent='Error de red'; msg.style.color='#ff7b7b'; }
+  });
+
+  function flashRow(tr){
+    tr.style.backgroundColor = '#243014';
+    setTimeout(()=>{ tr.style.backgroundColor=''; }, 900);
+  }
+  function showMessage(text, ok){
+    msg.textContent = text;
+    msg.style.color = ok ? '#7edc7e' : '#ff7b7b';
+  }
+  rows.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const tr = btn.closest('tr');
+    const id = tr.dataset.id;
+    if(btn.classList.contains('edit')){
+      if(tr.classList.contains('editing')) return;
+      tr.classList.add('editing');
+      // transform cells
+      const nameCell = tr.querySelector('.name');
+      const roleCell = tr.querySelector('.role');
+      const statusCell = tr.querySelector('.status');
+      nameCell.innerHTML = `<input class="inline" name="name" value="${nameCell.dataset.value || ''}">`;
+      roleCell.innerHTML = `<select class="inline" name="role">
+        <option value="user">user</option>
+        <option value="coach">coach</option>
+        <option value="admin">admin</option>
+      </select>`;
+      roleCell.querySelector('select').value = roleCell.dataset.value;
+      statusCell.innerHTML = `<select class="inline" name="is_active"><option value="1">Activo</option><option value="0">Pendiente</option></select>`;
+      statusCell.querySelector('select').value = statusCell.dataset.value;
+      tr.querySelector('.edit').style.display='none';
+      tr.querySelector('.delete').style.display='none';
+      tr.querySelector('.save').style.display='inline-block';
+      tr.querySelector('.cancel').style.display='inline-block';
+      return;
+    }
+    if(btn.classList.contains('cancel')){
+      window.location.reload(); // simpler revert
+      return;
+    }
+    if(btn.classList.contains('save')){
+      const payload = {};
+      const nameVal = tr.querySelector('input[name=name]').value.trim();
+      const roleVal = tr.querySelector('select[name=role]').value;
+      const activeVal = tr.querySelector('select[name=is_active]').value;
+      payload.name = nameVal;
+      payload.role = roleVal;
+      payload.is_active = activeVal === '1';
+      try {
+        const res = await fetch(`/admin/users/${id}/update`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        const j = await res.json();
+        if(!j.success){ showMessage(j.message || 'Error', false); return; }
+        showMessage('Actualizado', true);
+        // update display
+        tr.querySelector('.name').textContent = nameVal;
+        tr.querySelector('.name').dataset.value = nameVal;
+        tr.querySelector('.role').textContent = roleVal;
+        tr.querySelector('.role').dataset.value = roleVal;
+        tr.querySelector('.status').dataset.value = activeVal;
+        tr.querySelector('.status').innerHTML = activeVal==='1'?'<span class="status-badge active">Activo</span>':'<span class="status-badge inactive">Pendiente</span>';
+        tr.classList.remove('editing');
+        tr.querySelector('.edit').style.display='inline-block';
+        tr.querySelector('.delete').style.display='inline-block';
+        tr.querySelector('.save').style.display='none';
+        tr.querySelector('.cancel').style.display='none';
+        flashRow(tr);
+      } catch(err){ showMessage('Error de red', false); }
+      return;
+    }
+    if(btn.classList.contains('delete')){
+      if(!confirm('¿Borrar usuario?')) return;
+      try {
+        const res = await fetch(`/admin/users/${id}`, { method:'DELETE' });
+        const j = await res.json();
+        if(!j.success){ showMessage(j.message || 'Error', false); return; }
+        showMessage('Eliminado', true);
+        tr.remove();
+      } catch(err){ showMessage('Error de red', false); }
+      return;
+    }
+  });
+</script>
+</div>
+</body>
+</html>

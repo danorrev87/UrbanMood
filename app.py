@@ -2,12 +2,21 @@ from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 import os
 import logging
+from db import Base, engine
+from config import config as app_config
+from routes.auth import auth_bp
+from routes.admin import admin_bp
 from mailersend import emails
 from dotenv import load_dotenv
+from flask import session
 
 load_dotenv() # Load environment variables from .env file
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
+# Load core config (SECRET_KEY etc.)
+app.secret_key = app_config.SECRET_KEY  # ensure session works
+app.config.setdefault('SESSION_COOKIE_SAMESITE', 'Lax')
+app.config.setdefault('SESSION_COOKIE_HTTPONLY', True)
 
 # Logging configuration (idempotent if gunicorn already sets handlers)
 if not logging.getLogger().handlers:
@@ -22,6 +31,14 @@ allowed_origins = [
     "https://urbanmood.net"
 ]
 CORS(app, resources={r"/send-email": {"origins": allowed_origins}})
+
+# Register blueprints
+app.register_blueprint(auth_bp)
+app.register_blueprint(admin_bp)
+
+# Ensure tables exist (for early dev; later replace with Alembic migrations)
+with engine.begin() as conn:
+    Base.metadata.create_all(conn)
 
 @app.route('/send-email', methods=['POST'])
 def send_email():
@@ -182,6 +199,13 @@ def health():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.context_processor
+def inject_session_flags():
+    return {
+        'logged_in': bool(session.get('uid')),
+        'user_role': session.get('role')
+    }
 
 @app.route('/<path:filename>')
 def static_files(filename):
