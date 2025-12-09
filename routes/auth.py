@@ -6,7 +6,7 @@ from datetime import datetime
 from db import SessionLocal
 from models import User, UserRole, InvitationToken, InvitationPurpose
 from config import config
-from mailersend import emails
+from mailersend import Email
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -82,7 +82,7 @@ def send_invitation_email(email_to: str, token: str):
     if not config.MAILERSEND_API_KEY:
         print(f"[INVITE LINK] https://urbanmood.net/invite/{token}")
         return
-    mailer = emails.NewEmail(config.MAILERSEND_API_KEY)
+    mailer = Email(config.MAILERSEND_API_KEY)
     mail_body = {}
     mail_from = {"name": config.MAIL_FROM_NAME, "email": config.MAIL_FROM_EMAIL}
     recipients = [{"name": email_to, "email": email_to}]

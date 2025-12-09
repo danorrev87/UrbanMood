@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, render_template
+from flask import Flask, request, jsonify, send_from_directory, render_template, redirect
 from flask_cors import CORS
 import os
 import logging
@@ -6,7 +6,7 @@ from db import Base, engine
 from config import config as app_config
 from routes.auth import auth_bp
 from routes.admin import admin_bp
-from mailersend import emails
+from mailersend import Email
 from dotenv import load_dotenv
 from flask import session
 
@@ -61,7 +61,7 @@ def send_email():
         return jsonify({"success": False, "message": "Missing required form fields."}), 400
 
     # Initialize MailerSend
-    mailer = emails.NewEmail(mailer_api_key)
+    mailer = Email(mailer_api_key)
 
     # Define email parameters
     mail_body = {}
@@ -198,6 +198,9 @@ def health():
 
 @app.route('/')
 def index():
+    # Redirect logged-in users to admin panel
+    if session.get('uid') and session.get('role') == 'admin':
+        return redirect('/admin/users')
     return render_template('index.html')
 
 @app.context_processor
