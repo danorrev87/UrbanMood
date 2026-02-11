@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>UrbanMood - Mi Rutina</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:#0d0d0d; color:#e5e7e8; font-family:'Poppins',sans-serif; min-height:100vh; }
+
+    /* ── Nav ── */
+    nav.top-bar {
+      background:#101010; border-bottom:1px solid #1f1f1f;
+      padding:12px 24px; display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:100;
+    }
+    nav.top-bar .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+    nav.top-bar .nav-brand img { max-height:34px; width:auto; border-radius:6px; }
+    nav.top-bar .nav-brand span { font-size:.85rem; font-weight:700; color:#e8eae9; letter-spacing:.3px; }
+    nav.top-bar .nav-links { display:flex; gap:6px; align-items:center; }
+    nav.top-bar .nav-tab {
+      color:#9aa0a5; text-decoration:none; font-size:.75rem; font-weight:600;
+      padding:6px 14px; border-radius:20px; transition:all .2s;
+    }
+    nav.top-bar .nav-tab:hover { color:#e8eae9; background:#1a1a1a; }
+    nav.top-bar .nav-tab.active { color:#0d0d0d; background:#c2d03a; }
+    nav.top-bar .nav-logout {
+      color:#6b7075; text-decoration:none; font-size:.7rem; font-weight:500;
+      margin-left:8px; padding:6px 12px; border-radius:20px; transition:all .2s;
+    }
+    nav.top-bar .nav-logout:hover { color:#e8eae9; background:#1a1a1a; }
+
+    /* ── Main ── */
+    main { max-width:720px; margin:0 auto; padding:28px 20px 100px; }
+
+    /* ── Section toggle ── */
+    .section-panel { display:none; }
+    .section-panel.visible { display:block; }
+
+    /* ── Rutina header ── */
+    .rutina-header { margin-bottom:24px; }
+    .rutina-header h1 { font-size:1.5rem; color:#c2d03a; margin-bottom:4px; font-weight:700; }
+    .rutina-desc { font-size:.82rem; color:#9aa0a5; line-height:1.45; margin-bottom:4px; }
+    .rutina-dates { font-size:.68rem; color:#6b7075; }
+    .today-label { font-size:.72rem; color:#6b7075; margin-top:8px; }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      background:#161616; border:1px solid #252525; border-radius:12px;
+      padding:14px 18px; margin-bottom:22px;
+    }
+    .progress-label { font-size:.72rem; color:#9aa0a5; margin-bottom:8px; display:flex; justify-content:space-between; }
+    .progress-label span { color:#c2d03a; font-weight:600; }
+    .progress-track { background:#1f1f1f; border-radius:6px; height:8px; overflow:hidden; }
+    .progress-fill {
+      background: linear-gradient(90deg, #a8b720, #c2d03a);
+      height:100%; border-radius:6px; transition:width .4s ease;
+    }
+
+    /* ── Exercise cards ── */
+    .ejercicio-card {
+      background:#121212; border:1px solid #252525; border-radius:14px;
+      padding:14px 16px; margin-bottom:12px; display:flex; gap:12px; align-items:flex-start;
+      border-left:3px solid transparent; transition:all .3s ease; cursor:pointer;
+    }
+    .ejercicio-card.done { border-left-color:#c2d03a; background:#131a0d; }
+
+    /* checkmark */
+    .check-circle {
+      width:32px; height:32px; border-radius:50%; flex-shrink:0;
+      border:2px solid #3a3f44; display:flex; align-items:center; justify-content:center;
+      transition:all .25s ease; margin-top:2px;
+    }
+    .check-circle i { font-size:.8rem; color:transparent; transition:all .25s ease; }
+    .ejercicio-card.done .check-circle {
+      border-color:#c2d03a; background:#c2d03a;
+    }
+    .ejercicio-card.done .check-circle i { color:#0d0d0d; }
+
+    /* thumbnail */
+    .ejercicio-thumb {
+      width:56px; height:56px; background:#0f0f0f; border-radius:10px;
+      flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center;
+    }
+    .ejercicio-thumb img { width:100%; height:100%; object-fit:cover; }
+    .ejercicio-thumb i { font-size:1.4rem; color:#3a3f44; }
+
+    /* body */
+    .ejercicio-body { flex:1; min-width:0; }
+    .ejercicio-body h3 { font-size:.88rem; color:#e8eae9; margin-bottom:3px; font-weight:600; }
+    .section-tag {
+      display:inline-block; font-size:.58rem; color:#c2d03a; background:#1a2a10;
+      padding:2px 8px; border-radius:20px; font-weight:600; text-transform:uppercase;
+      letter-spacing:.4px; margin-bottom:6px;
+    }
+    .ejercicio-details { display:flex; gap:12px; flex-wrap:wrap; }
+    .detail-item { font-size:.68rem; color:#b4b9bd; }
+    .detail-item strong { color:#e8eae9; }
+    .ejercicio-notes { margin-top:5px; font-size:.68rem; color:#7a8086; font-style:italic; }
+
+    /* ── Complete all button ── */
+    .complete-all-btn {
+      display:block; width:100%; padding:14px; margin-top:20px;
+      background:transparent; border:2px solid #c2d03a; border-radius:12px;
+      color:#c2d03a; font-family:'Poppins',sans-serif; font-size:.82rem; font-weight:600;
+      cursor:pointer; transition:all .25s ease; text-align:center;
+    }
+    .complete-all-btn:hover { background:#c2d03a; color:#0d0d0d; }
+    .complete-all-btn.all-done { background:#c2d03a; color:#0d0d0d; }
+
+    /* ── History ── */
+    .history-section { padding-top:8px; }
+
+    .week-strip {
+      display:flex; gap:8px; justify-content:center; margin-bottom:28px; padding:16px 0;
+    }
+    .week-day {
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+    }
+    .week-day .day-label { font-size:.58rem; color:#6b7075; text-transform:uppercase; font-weight:600; }
+    .week-day .day-circle {
+      width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-size:.65rem; font-weight:600; border:2px solid #252525; color:#6b7075; transition:all .3s;
+    }
+    .week-day .day-circle.active { border-color:#c2d03a; color:#c2d03a; }
+    .week-day .day-circle.worked { border-color:#c2d03a; background:#c2d03a; color:#0d0d0d; }
+    .week-day .day-circle.today { box-shadow:0 0 0 2px #0d0d0d, 0 0 0 4px #c2d03a; }
+
+    .history-list { list-style:none; }
+    .history-entry { margin-bottom:10px; }
+    .history-item {
+      background:#121212; border:1px solid #252525; border-radius:12px;
+      padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
+      cursor:pointer; transition:all .2s;
+    }
+    .history-entry.expanded .history-item { border-radius:12px 12px 0 0; border-bottom-color:transparent; background:#161616; }
+    .history-item:hover { background:#161616; }
+    .history-item .chevron { color:#6b7075; font-size:.65rem; transition:transform .2s; margin-left:8px; }
+    .history-entry.expanded .history-item .chevron { transform:rotate(180deg); color:#c2d03a; }
+    .history-date { font-size:.82rem; font-weight:600; color:#e8eae9; }
+    .history-stats { display:flex; align-items:center; gap:10px; }
+    .history-badge {
+      font-size:.65rem; font-weight:600; padding:3px 10px; border-radius:20px;
+    }
+    .history-badge.complete { background:#1a2a10; color:#c2d03a; }
+    .history-badge.partial { background:#2a2010; color:#d4a940; }
+    .history-bar-mini {
+      width:60px; height:5px; background:#1f1f1f; border-radius:3px; overflow:hidden;
+    }
+    .history-bar-mini .fill { height:100%; background:#c2d03a; border-radius:3px; }
+
+    /* ── Detail panel ── */
+    .history-detail {
+      display:none; background:#141414; border:1px solid #252525; border-top:none;
+      border-radius:0 0 12px 12px; padding:12px 16px;
+    }
+    .history-entry.expanded .history-detail { display:block; }
+    .history-detail .loading-spinner { margin:8px auto; display:block; }
+    .detail-exercise {
+      display:flex; align-items:center; gap:10px; padding:8px 0;
+      border-bottom:1px solid #1f1f1f;
+    }
+    .detail-exercise:last-child { border-bottom:none; }
+    .detail-exercise .de-thumb {
+      width:36px; height:36px; border-radius:8px; overflow:hidden; flex-shrink:0;
+      background:#0f0f0f; display:flex; align-items:center; justify-content:center;
+    }
+    .detail-exercise .de-thumb img { width:100%; height:100%; object-fit:cover; }
+    .detail-exercise .de-thumb i { font-size:.9rem; color:#3a3f44; }
+    .detail-exercise .de-info { flex:1; min-width:0; }
+    .detail-exercise .de-name { font-size:.75rem; font-weight:600; color:#e8eae9; }
+    .detail-exercise .de-section { font-size:.55rem; color:#c2d03a; text-transform:uppercase; font-weight:600; }
+    .detail-exercise .de-meta { font-size:.62rem; color:#9aa0a5; }
+    .detail-exercise .de-check { color:#c2d03a; font-size:.75rem; }
+
+    .history-empty {
+      text-align:center; padding:40px 20px; color:#6b7075; font-size:.82rem;
+    }
+    .history-empty i { font-size:2.5rem; color:#252525; margin-bottom:12px; display:block; }
+
+    /* ── Empty state ── */
+    .empty-state { text-align:center; padding:80px 20px; }
+    .empty-state i { font-size:4rem; color:#252525; margin-bottom:16px; }
+    .empty-state h2 { font-size:1.2rem; color:#c2d03a; margin:0 0 10px; }
+    .empty-state p { font-size:.82rem; color:#7a8086; margin:0; line-height:1.45; }
+
+    /* ── Toast ── */
+    .toast {
+      position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px);
+      background:#1a2a10; color:#c2d03a; border:1px solid #2a3a15;
+      padding:8px 20px; border-radius:24px; font-size:.72rem; font-weight:600;
+      opacity:0; transition:all .3s ease; pointer-events:none; z-index:200;
+      white-space:nowrap;
+    }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    /* ── Lightbox ── */
+    .lightbox {
+      position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:300;
+      display:none; align-items:center; justify-content:center;
+      padding:20px; cursor:pointer;
+    }
+    .lightbox.open { display:flex; }
+    .lightbox img {
+      max-width:90vw; max-height:85vh; border-radius:12px;
+      object-fit:contain; box-shadow:0 8px 40px rgba(0,0,0,.6);
+    }
+    .lightbox .lb-caption {
+      position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
+      color:#e8eae9; font-size:.78rem; font-weight:600; text-align:center;
+      background:rgba(13,13,13,.7); padding:6px 18px; border-radius:20px;
+      white-space:nowrap; max-width:90vw; overflow:hidden; text-overflow:ellipsis;
+    }
+    .lightbox .lb-close {
+      position:absolute; top:16px; right:20px; color:#9aa0a5; font-size:1.3rem;
+      cursor:pointer; transition:color .2s;
+    }
+    .lightbox .lb-close:hover { color:#e8eae9; }
+
+    /* ── Responsive ── */
+    @media (max-width:600px) {
+      /* Nav: compact */
+      nav.top-bar { padding:10px 14px; }
+      nav.top-bar .nav-brand img { max-height:28px; }
+      nav.top-bar .nav-brand span { font-size:.75rem; }
+      nav.top-bar .nav-tab { font-size:.68rem; padding:5px 10px; }
+      nav.top-bar .nav-logout { font-size:.62rem; padding:5px 8px; margin-left:4px; }
+      nav.top-bar .nav-links { gap:4px; }
+
+      /* Main */
+      main { padding:18px 12px 80px; }
+
+      /* Header */
+      .rutina-header h1 { font-size:1.25rem; }
+      .rutina-desc { font-size:.76rem; }
+      .today-label { font-size:.66rem; }
+
+      /* Progress */
+      .progress-wrap { padding:12px 14px; margin-bottom:16px; }
+
+      /* Cards: stack thumbnail below check, body fills width */
+      .ejercicio-card {
+        flex-wrap:wrap; gap:10px; padding:12px; border-radius:12px;
+      }
+      .check-circle { width:28px; height:28px; }
+      .check-circle i { font-size:.7rem; }
+      .ejercicio-thumb { width:44px; height:44px; border-radius:8px; }
+      .ejercicio-body { flex-basis:calc(100% - 90px); min-width:0; }
+      .ejercicio-body h3 { font-size:.82rem; }
+      .section-tag { font-size:.54rem; }
+      .ejercicio-details { gap:8px; }
+      .detail-item { font-size:.64rem; }
+      .ejercicio-notes { font-size:.64rem; }
+
+      /* Complete button */
+      .complete-all-btn { padding:12px; font-size:.76rem; border-radius:10px; }
+
+      /* Week strip */
+      .week-strip { gap:4px; padding:12px 0; margin-bottom:20px; }
+      .week-day .day-label { font-size:.52rem; }
+      .week-day .day-circle { width:34px; height:34px; font-size:.62rem; }
+
+      /* History items */
+      .history-item { padding:12px 14px; border-radius:10px; }
+      .history-entry.expanded .history-item { border-radius:10px 10px 0 0; }
+      .history-date { font-size:.75rem; }
+      .history-badge { font-size:.6rem; padding:2px 8px; }
+      .history-bar-mini { width:45px; }
+      .history-stats { gap:6px; }
+      .history-detail { padding:10px 12px; border-radius:0 0 10px 10px; }
+      .detail-exercise .de-name { font-size:.7rem; }
+      .detail-exercise .de-meta { font-size:.58rem; }
+
+      /* Toast */
+      .toast { bottom:20px; font-size:.68rem; padding:7px 16px; }
+    }
+
+    /* Extra small (iPhone SE, 375px and below) */
+    @media (max-width:390px) {
+      nav.top-bar .nav-brand span { display:none; }
+      .ejercicio-thumb { width:38px; height:38px; }
+      .ejercicio-body { flex-basis:calc(100% - 78px); }
+      .week-day .day-circle { width:30px; height:30px; font-size:.58rem; }
+      .week-strip { gap:2px; }
+    }
+
+    /* ── Loading spinner ── */
+    .loading-spinner {
+      display:inline-block; width:14px; height:14px;
+      border:2px solid #3a3f44; border-top-color:#c2d03a; border-radius:50%;
+      animation:spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <!-- ── Nav ── -->
+  <nav class="top-bar">
+    <a href="/" class="nav-brand">
+      <img src="/static/icon.png" alt="UrbanMood">
+      <span>UrbanMood</span>
+    </a>
+    <div class="nav-links">
+      <a href="#" class="nav-tab active" data-tab="rutina">Mi Rutina</a>
+      <a href="#" class="nav-tab" data-tab="historial">Historial</a>
+      <a href="/logout" class="nav-logout"><i class="fas fa-sign-out-alt"></i> Salir</a>
+    </div>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+  <div class="lightbox" id="lightbox">
+    <i class="fas fa-xmark lb-close"></i>
+    <img src="" alt="">
+    <div class="lb-caption"></div>
+  </div>
+  <main>
+    {% if not rutinas %}
+    <!-- ── Empty state ── -->
+    <div class="empty-state">
+      <i class="fas fa-dumbbell"></i>
+      <h2>Sin rutina asignada</h2>
+      <p>Tu entrenador te asignará una rutina pronto.<br>Contactá a UrbanMood para más información.</p>
+    </div>
+
+    {% else %}
+    <!-- ════════════════ RUTINA TAB ════════════════ -->
+    <div class="section-panel visible" id="panel-rutina">
+      {% for rutina in rutinas %}
+      <div class="rutina-header">
+        <h1>{{ rutina.name }}</h1>
+        {% if rutina.description %}
+        <p class="rutina-desc">{{ rutina.description }}</p>
+        {% endif %}
+        {% if rutina.start_date or rutina.end_date %}
+        <p class="rutina-dates">
+          {% if rutina.start_date %}Desde {{ rutina.start_date.strftime('%d/%m/%Y') }}{% endif %}
+          {% if rutina.start_date and rutina.end_date %} &mdash; {% endif %}
+          {% if rutina.end_date %}Hasta {{ rutina.end_date.strftime('%d/%m/%Y') }}{% endif %}
+        </p>
+        {% endif %}
+        <p class="today-label"><i class="fas fa-calendar-day"></i> {{ today.strftime('%A %d de %B, %Y') }}</p>
+      </div>
+
+      {% set ns = namespace(total=0) %}
+      {% for re in rutina.ejercicios %}
+        {% set ns.total = ns.total + 1 %}
+      {% endfor %}
+      {% set ns2 = namespace(done=0) %}
+      {% for re in rutina.ejercicios %}
+        {% if re.id in completed_ids %}
+          {% set ns2.done = ns2.done + 1 %}
+        {% endif %}
+      {% endfor %}
+
+      <!-- Progress bar -->
+      <div class="progress-wrap" data-rutina-id="{{ rutina.id }}">
+        <div class="progress-label">
+          <span class="progress-text">{{ ns2.done }}/{{ ns.total }} ejercicios completados</span>
+          <span class="progress-pct">{{ ((ns2.done / ns.total * 100) if ns.total > 0 else 0)|int }}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:{{ ((ns2.done / ns.total * 100) if ns.total > 0 else 0)|int }}%"></div>
+        </div>
+      </div>
+
+      <!-- Exercise cards -->
+      {% for re in rutina.ejercicios|sort(attribute='orden') %}
+      <div class="ejercicio-card{% if re.id in completed_ids %} done{% endif %}"
+           data-re-id="{{ re.id }}" data-rutina-id="{{ rutina.id }}">
+        <div class="check-circle">
+          <i class="fas fa-check"></i>
+        </div>
+        <div class="ejercicio-thumb">
+          {% if re.ejercicio.image_url %}
+          <img src="{{ re.ejercicio.image_url }}" alt="{{ re.ejercicio.name }}" loading="lazy">
+          {% else %}
+          <i class="fas fa-dumbbell"></i>
+          {% endif %}
+        </div>
+        <div class="ejercicio-body">
+          <h3>{{ re.ejercicio.name }}</h3>
+          <span class="section-tag">{{ re.ejercicio.body_section.value }}</span>
+          <div class="ejercicio-details">
+            {% if re.series %}<div class="detail-item"><strong>{{ re.series }}</strong> series</div>{% endif %}
+            {% if re.repeticiones %}<div class="detail-item"><strong>{{ re.repeticiones }}</strong> reps</div>{% endif %}
+            {% if re.peso %}<div class="detail-item"><strong>{{ re.peso }}</strong></div>{% endif %}
+            {% if re.descanso %}<div class="detail-item"><i class="fas fa-clock" style="color:#c2d03a;font-size:.6rem;"></i> {{ re.descanso }}</div>{% endif %}
+          </div>
+          {% if re.notas %}
+          <div class="ejercicio-notes"><i class="fas fa-comment" style="margin-right:4px;"></i>{{ re.notas }}</div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- Complete all button -->
+      <button class="complete-all-btn{% if ns2.done == ns.total and ns.total > 0 %} all-done{% endif %}"
+              data-rutina-id="{{ rutina.id }}"
+              onclick="toggleAll(this)">
+        {% if ns2.done == ns.total and ns.total > 0 %}
+          <i class="fas fa-check-double"></i> Rutina completada
+        {% else %}
+          <i class="fas fa-check-double"></i> Completar todo
+        {% endif %}
+      </button>
+
+      {% if not loop.last %}<hr style="border-color:#252525;margin:30px 0;">{% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- ════════════════ HISTORY TAB ════════════════ -->
+    <div class="section-panel" id="panel-historial">
+      <div class="history-section">
+        <div class="week-strip" id="weekStrip">
+          <!-- filled by JS -->
+        </div>
+        <ul class="history-list" id="historyList">
+          <li class="history-empty"><div class="loading-spinner"></div> Cargando historial...</li>
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+  </main>
+
+  <script>
+  (function() {
+    // ── Lightbox ──
+    const lightbox = document.getElementById('lightbox');
+    const lbImg = lightbox.querySelector('img');
+    const lbCaption = lightbox.querySelector('.lb-caption');
+
+    function openLightbox(src, name) {
+      lbImg.src = src;
+      lbImg.alt = name;
+      lbCaption.textContent = name;
+      lightbox.classList.add('open');
+    }
+    lightbox.addEventListener('click', () => lightbox.classList.remove('open'));
+    lbImg.addEventListener('click', e => e.stopPropagation()); // don't close when clicking image
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') lightbox.classList.remove('open');
+    });
+
+    // Attach to all exercise thumbnails (stop card toggle when tapping thumb)
+    document.querySelectorAll('.ejercicio-card .ejercicio-thumb').forEach(thumb => {
+      const img = thumb.querySelector('img');
+      if (!img) return;
+      thumb.style.cursor = 'zoom-in';
+      thumb.addEventListener('click', function(e) {
+        e.stopPropagation(); // prevent card toggle
+        const name = this.closest('.ejercicio-card').querySelector('h3').textContent;
+        openLightbox(img.src, name);
+      });
+    });
+
+    // ── Tab switching ──
+    const tabs = document.querySelectorAll('.nav-tab[data-tab]');
+    const panels = document.querySelectorAll('.section-panel');
+    let historyLoaded = false;
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = this.dataset.tab;
+        tabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        panels.forEach(p => p.classList.remove('visible'));
+        const panel = document.getElementById('panel-' + target);
+        if (panel) panel.classList.add('visible');
+        if (target === 'historial' && !historyLoaded) {
+          loadHistory();
+          historyLoaded = true;
+        }
+      });
+    });
+
+    // ── Toggle exercise ──
+    document.querySelectorAll('.ejercicio-card[data-re-id]').forEach(card => {
+      card.addEventListener('click', function() {
+        const reId = parseInt(this.dataset.reId);
+        toggleExercise(this, reId);
+      });
+    });
+
+    // ── Toast ──
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+    }
+
+    async function toggleExercise(card, reId) {
+      // Optimistic UI
+      const wasDone = card.classList.contains('done');
+      card.classList.toggle('done');
+      updateProgress(card.dataset.rutinaId);
+
+      const nowDone = card.classList.contains('done');
+      showToast(nowDone ? 'Guardado' : 'Desmarcado');
+
+      try {
+        const res = await fetch('/mi-rutina/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rutina_ejercicio_id: reId })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          card.classList.toggle('done');
+          updateProgress(card.dataset.rutinaId);
+          showToast('Error al guardar');
+        }
+      } catch (err) {
+        card.classList.toggle('done');
+        updateProgress(card.dataset.rutinaId);
+        showToast('Sin conexión');
+      }
+    }
+
+    // ── Update progress bar ──
+    function updateProgress(rutinaId) {
+      const cards = document.querySelectorAll(`.ejercicio-card[data-rutina-id="${rutinaId}"]`);
+      const total = cards.length;
+      const done = document.querySelectorAll(`.ejercicio-card[data-rutina-id="${rutinaId}"].done`).length;
+      const pct = total > 0 ? Math.round(done / total * 100) : 0;
+
+      const wrap = document.querySelector(`.progress-wrap[data-rutina-id="${rutinaId}"]`);
+      if (wrap) {
+        wrap.querySelector('.progress-text').textContent = `${done}/${total} ejercicios completados`;
+        wrap.querySelector('.progress-pct').textContent = pct + '%';
+        wrap.querySelector('.progress-fill').style.width = pct + '%';
+      }
+
+      // Update complete-all button state
+      const btn = document.querySelector(`.complete-all-btn[data-rutina-id="${rutinaId}"]`);
+      if (btn) {
+        if (done === total && total > 0) {
+          btn.classList.add('all-done');
+          btn.innerHTML = '<i class="fas fa-check-double"></i> Rutina completada';
+        } else {
+          btn.classList.remove('all-done');
+          btn.innerHTML = '<i class="fas fa-check-double"></i> Completar todo';
+        }
+      }
+    }
+
+    // ── Complete all ──
+    window.toggleAll = async function(btn) {
+      const rutinaId = btn.dataset.rutinaId;
+      const cards = document.querySelectorAll(`.ejercicio-card[data-rutina-id="${rutinaId}"]`);
+      const allDone = btn.classList.contains('all-done');
+
+      // Determine which cards need toggling
+      const toToggle = [];
+      cards.forEach(card => {
+        const isDone = card.classList.contains('done');
+        if (allDone && isDone) toToggle.push(card);       // uncomplete all
+        if (!allDone && !isDone) toToggle.push(card);      // complete remaining
+      });
+
+      for (const card of toToggle) {
+        const reId = parseInt(card.dataset.reId);
+        card.classList.toggle('done');
+        updateProgress(rutinaId);
+
+        try {
+          await fetch('/mi-rutina/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rutina_ejercicio_id: reId })
+          });
+        } catch (err) { /* silently continue */ }
+      }
+    };
+
+    // ── Load history ──
+    const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const MONTH_NAMES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+    async function loadHistory() {
+      try {
+        const res = await fetch('/mi-rutina/history');
+        const data = await res.json();
+        renderWeekStrip(data.history);
+        renderHistoryList(data.history);
+      } catch (err) {
+        document.getElementById('historyList').innerHTML =
+          '<li class="history-empty"><i class="fas fa-exclamation-circle"></i>Error al cargar historial</li>';
+      }
+    }
+
+    function renderWeekStrip(history) {
+      const strip = document.getElementById('weekStrip');
+      if (!strip) return;
+
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const historyDates = new Set(history.map(h => h.date));
+      let html = '';
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const iso = d.toISOString().split('T')[0];
+        const dayNum = d.getDate();
+        const dayName = DAY_NAMES[d.getDay()];
+        const isToday = i === 0;
+        const worked = historyDates.has(iso);
+
+        let circleClass = 'day-circle';
+        if (isToday) circleClass += ' today';
+        if (worked) circleClass += ' worked';
+        else if (isToday) circleClass += ' active';
+
+        html += `<div class="week-day" data-date="${iso}" style="cursor:pointer">
+          <span class="day-label">${dayName}</span>
+          <div class="${circleClass}">${dayNum}</div>
+        </div>`;
+      }
+      strip.innerHTML = html;
+
+      // Click on week day circles to scroll to that day in the list
+      strip.querySelectorAll('.week-day[data-date]').forEach(wd => {
+        wd.addEventListener('click', function() {
+          const dateVal = this.dataset.date;
+          const entry = document.querySelector(`.history-entry[data-date="${dateVal}"]`);
+          if (entry) {
+            entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (!entry.classList.contains('expanded')) toggleDetail(entry, dateVal);
+          }
+        });
+      });
+    }
+
+    function renderHistoryList(history) {
+      const list = document.getElementById('historyList');
+      if (!list) return;
+
+      if (!history.length) {
+        list.innerHTML = '<li class="history-empty"><i class="fas fa-calendar-xmark"></i>No hay entrenamientos registrados aún. Completá ejercicios para ver tu historial.</li>';
+        return;
+      }
+
+      let html = '';
+      history.forEach(h => {
+        const d = new Date(h.date + 'T12:00:00');
+        const dayName = DAY_NAMES[d.getDay()];
+        const dateStr = `${dayName} ${d.getDate()} de ${MONTH_NAMES[d.getMonth()]}`;
+        const pct = h.total > 0 ? Math.round(h.completed / h.total * 100) : 0;
+        const isComplete = h.completed >= h.total;
+        const badgeClass = isComplete ? 'complete' : 'partial';
+        const badgeText = `${h.completed}/${h.total}`;
+
+        html += `<li class="history-entry" data-date="${h.date}">
+          <div class="history-item">
+            <span class="history-date">${dateStr}</span>
+            <div class="history-stats">
+              <span class="history-badge ${badgeClass}">${badgeText}</span>
+              <div class="history-bar-mini"><div class="fill" style="width:${pct}%"></div></div>
+              <i class="fas fa-chevron-down chevron"></i>
+            </div>
+          </div>
+          <div class="history-detail" id="detail-${h.date}">
+            <div class="loading-spinner"></div>
+          </div>
+        </li>`;
+      });
+      list.innerHTML = html;
+
+      // Attach click handlers
+      list.querySelectorAll('.history-entry').forEach(entry => {
+        entry.querySelector('.history-item').addEventListener('click', function() {
+          const dateVal = entry.dataset.date;
+          toggleDetail(entry, dateVal);
+        });
+      });
+    }
+
+    const detailCache = {};
+
+    async function toggleDetail(entry, dateStr) {
+      // Collapse if already open
+      if (entry.classList.contains('expanded')) {
+        entry.classList.remove('expanded');
+        return;
+      }
+
+      // Collapse any other open entries
+      document.querySelectorAll('.history-entry.expanded').forEach(e => e.classList.remove('expanded'));
+
+      entry.classList.add('expanded');
+      const detailEl = document.getElementById('detail-' + dateStr);
+
+      // Use cache if available
+      if (detailCache[dateStr]) {
+        detailEl.innerHTML = detailCache[dateStr];
+        return;
+      }
+
+      // Show spinner
+      detailEl.innerHTML = '<div style="text-align:center;padding:10px;"><div class="loading-spinner"></div></div>';
+
+      try {
+        const res = await fetch('/mi-rutina/history/' + dateStr);
+        const data = await res.json();
+        let html = '';
+
+        if (!data.exercises || !data.exercises.length) {
+          html = '<div style="text-align:center;padding:10px;color:#6b7075;font-size:.75rem;">Sin ejercicios registrados</div>';
+        } else {
+          data.exercises.forEach(ex => {
+            const thumb = ex.image_url
+              ? `<img src="${ex.image_url}" alt="${ex.name}" loading="lazy">`
+              : '<i class="fas fa-dumbbell"></i>';
+            const meta = [
+              ex.series ? `${ex.series} series` : '',
+              ex.repeticiones ? `${ex.repeticiones} reps` : '',
+              ex.peso || '',
+              ex.descanso ? `${ex.descanso}` : ''
+            ].filter(Boolean).join(' · ');
+
+            html += `<div class="detail-exercise">
+              <div class="de-thumb">${thumb}</div>
+              <div class="de-info">
+                <div class="de-name">${ex.name}</div>
+                <div class="de-section">${ex.body_section}</div>
+                ${meta ? `<div class="de-meta">${meta}</div>` : ''}
+              </div>
+              <i class="fas fa-circle-check de-check"></i>
+            </div>`;
+          });
+        }
+
+        detailCache[dateStr] = html;
+        detailEl.innerHTML = html;
+      } catch (err) {
+        detailEl.innerHTML = '<div style="text-align:center;padding:10px;color:#6b7075;font-size:.75rem;">Error al cargar detalle</div>';
+      }
+    }
+  })();
+  </script>
+</body>
+</html>

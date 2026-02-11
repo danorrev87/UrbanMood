@@ -78,6 +78,14 @@
           {% endfor %}
         </select>
 
+        <label>Sucursal</label>
+        <select name="preferred_location_id">
+          <option value="">— Sin sucursal —</option>
+          {% for s in sucursales %}
+            <option value="{{ s.id }}" {% if user.preferred_location_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+
         <label>Rol</label>
         <select name="role">
           <option value="user" {% if user.role.value=='user' %}selected{% endif %}>Usuario</option>

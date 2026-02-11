@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, send_from_directory
 from db import SessionLocal
-from models import User, UserRole, InvitationToken, InvitationPurpose, Clase, Rutina, Ejercicio, RutinaEjercicio, BodySection
+from models import User, UserRole, InvitationToken, InvitationPurpose, Clase, Rutina, Ejercicio, RutinaEjercicio, BodySection, Sucursal
 from routes.auth import send_invitation_email
+from utils.audit import log_action
 from datetime import datetime
 import secrets
 import os
@@ -46,6 +47,7 @@ def create_user():
         token = secrets.token_urlsafe(32)
         invite = InvitationToken(user_id=user.id, token=token, purpose=InvitationPurpose.invite, expires_at=InvitationToken.new_expiry())
         db.add(invite)
+        log_action(db, 'create_user', 'user', user.id, {'email': email})
         db.commit()
         send_invitation_email(email, token)
         return jsonify({"success": True, "user_id": user.id})
@@ -87,6 +89,10 @@ def update_user(user_id):
             user.role = UserRole(data['role'])
         if 'is_active' in data:
             user.is_active = bool(data['is_active'])
+        if 'preferred_location_id' in data:
+            loc_id = data.get('preferred_location_id')
+            user.preferred_location_id = int(loc_id) if loc_id else None
+        log_action(db, 'update_user', 'user', user_id, data)
         db.commit()
         return jsonify({"success": True})
 
@@ -105,6 +111,7 @@ def delete_user(user_id):
             admin_count = db.query(User).filter(User.role==UserRole.admin).count()
             if admin_count == 1:
                 return jsonify({"success": False, "message": "No se puede eliminar el último admin"}), 400
+        log_action(db, 'delete_user', 'user', user_id, {'email': user.email})
         db.delete(user)
         db.commit()
         return jsonify({"success": True})
@@ -116,9 +123,13 @@ def user_detail(user_id):
         user = db.query(User).filter(User.id==user_id).first()
         if not user:
             return jsonify({"success": False, "message": "No existe"}), 404
-        return render_template('admin_user_detail.html', user=user)
+        sucursales = db.query(Sucursal).filter(Sucursal.is_active == True).order_by(Sucursal.name).all()
+        return render_template('admin_user_detail.html', user=user, sucursales=sucursales)
 
-# --- Placeholder section routes ---
+# ============================================================================
+# CLASES ROUTES
+# ============================================================================
+
 @admin_bp.route('/admin/clases', methods=['GET'])
 @require_admin
 def list_clases():
@@ -142,6 +153,8 @@ def create_clase():
             return jsonify({"success": False, "message": "Clase ya existe"}), 400
         clase = Clase(name=name, description=description)
         db.add(clase)
+        db.flush()
+        log_action(db, 'create_clase', 'clase', clase.id)
         db.commit()
         return jsonify({"success": True, "id": clase.id})
 
@@ -168,6 +181,7 @@ def update_clase(clase_id):
             clase.description = desc
         if 'is_active' in data:
             clase.is_active = bool(data.get('is_active'))
+        log_action(db, 'update_clase', 'clase', clase_id)
         db.commit()
         return jsonify({"success": True})
 
@@ -178,19 +192,178 @@ def delete_clase(clase_id):
         clase = db.query(Clase).filter(Clase.id==clase_id).first()
         if not clase:
             return jsonify({"success": False, "message": "No existe"}), 404
+        log_action(db, 'delete_clase', 'clase', clase_id)
         db.delete(clase)
         db.commit()
         return jsonify({"success": True})
 
-@admin_bp.route('/admin/sucursales')
+# ============================================================================
+# SUCURSALES ROUTES
+# ============================================================================
+
+@admin_bp.route('/admin/sucursales', methods=['GET'])
 @require_admin
 def admin_sucursales():
-    return render_template('admin_section_placeholder.html', title='Sucursales', description='Gestión de sucursales próximamente')
+    with SessionLocal() as db:
+        sucursales = db.query(Sucursal).order_by(Sucursal.created_at.desc()).all()
+        return render_template('admin_sucursales.html', sucursales=sucursales)
 
-@admin_bp.route('/admin/entrenadores')
+@admin_bp.route('/admin/sucursales', methods=['POST'])
+@require_admin
+def create_sucursal():
+    data = request.get_json() or {}
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({"success": False, "message": "Nombre requerido"}), 400
+    if len(name) > 120:
+        return jsonify({"success": False, "message": "Nombre demasiado largo"}), 400
+    with SessionLocal() as db:
+        exists = db.query(Sucursal).filter(Sucursal.name == name).first()
+        if exists:
+            return jsonify({"success": False, "message": "Sucursal ya existe"}), 400
+        sucursal = Sucursal(
+            name=name,
+            address=(data.get('address') or '').strip() or None,
+            phone=(data.get('phone') or '').strip() or None
+        )
+        db.add(sucursal)
+        db.flush()
+        log_action(db, 'create_sucursal', 'sucursal', sucursal.id, {'name': name})
+        db.commit()
+        return jsonify({"success": True, "id": sucursal.id})
+
+@admin_bp.route('/admin/sucursales/<int:sucursal_id>', methods=['PATCH'])
+@require_admin
+def update_sucursal(sucursal_id):
+    data = request.get_json() or {}
+    with SessionLocal() as db:
+        sucursal = db.query(Sucursal).filter(Sucursal.id == sucursal_id).first()
+        if not sucursal:
+            return jsonify({"success": False, "message": "No existe"}), 404
+        if 'name' in data:
+            new_name = (data.get('name') or '').strip()
+            if not new_name:
+                return jsonify({"success": False, "message": "Nombre requerido"}), 400
+            clash = db.query(Sucursal).filter(Sucursal.name == new_name, Sucursal.id != sucursal.id).first()
+            if clash:
+                return jsonify({"success": False, "message": "Nombre ya usado"}), 400
+            sucursal.name = new_name
+        if 'address' in data:
+            sucursal.address = (data.get('address') or '').strip() or None
+        if 'phone' in data:
+            sucursal.phone = (data.get('phone') or '').strip() or None
+        if 'is_active' in data:
+            sucursal.is_active = bool(data.get('is_active'))
+        log_action(db, 'update_sucursal', 'sucursal', sucursal_id, data)
+        db.commit()
+        return jsonify({"success": True})
+
+@admin_bp.route('/admin/sucursales/<int:sucursal_id>', methods=['DELETE'])
+@require_admin
+def delete_sucursal(sucursal_id):
+    with SessionLocal() as db:
+        sucursal = db.query(Sucursal).filter(Sucursal.id == sucursal_id).first()
+        if not sucursal:
+            return jsonify({"success": False, "message": "No existe"}), 404
+        log_action(db, 'delete_sucursal', 'sucursal', sucursal_id, {'name': sucursal.name})
+        db.delete(sucursal)
+        db.commit()
+        return jsonify({"success": True})
+
+# ============================================================================
+# ENTRENADORES ROUTES
+# ============================================================================
+
+@admin_bp.route('/admin/entrenadores', methods=['GET'])
 @require_admin
 def admin_entrenadores():
-    return render_template('admin_section_placeholder.html', title='Entrenadores', description='Gestión de entrenadores próximamente')
+    with SessionLocal() as db:
+        coaches = db.query(User).filter(User.role == UserRole.coach).order_by(User.name).all()
+        # Annotate each coach with stats
+        coach_data = []
+        for coach in coaches:
+            rutinas_count = db.query(Rutina).filter(Rutina.created_by_coach_id == coach.id).count()
+            users_count = db.query(Rutina.user_id).filter(Rutina.created_by_coach_id == coach.id).distinct().count()
+            coach.rutinas_count = rutinas_count
+            coach.users_count = users_count
+            coach_data.append(coach)
+
+        total_rutinas = db.query(Rutina).filter(
+            Rutina.created_by_coach_id.in_([c.id for c in coaches])
+        ).count() if coaches else 0
+
+        regular_users = db.query(User).filter(User.role == UserRole.user, User.is_active == True).order_by(User.name).all()
+
+        return render_template('admin_entrenadores.html',
+            coaches=coach_data,
+            total_rutinas=total_rutinas,
+            regular_users=regular_users
+        )
+
+@admin_bp.route('/admin/entrenadores/<int:user_id>/promote', methods=['POST'])
+@require_admin
+def promote_to_coach(user_id):
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return jsonify({"success": False, "message": "Usuario no encontrado"}), 404
+        if user.role == UserRole.coach:
+            return jsonify({"success": False, "message": "Ya es coach"}), 400
+        if user.role == UserRole.admin:
+            return jsonify({"success": False, "message": "No se puede cambiar un admin a coach"}), 400
+        user.role = UserRole.coach
+        log_action(db, 'promote_coach', 'user', user_id, {'email': user.email})
+        db.commit()
+        return jsonify({"success": True})
+
+@admin_bp.route('/admin/entrenadores/<int:user_id>/demote', methods=['POST'])
+@require_admin
+def demote_from_coach(user_id):
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return jsonify({"success": False, "message": "Usuario no encontrado"}), 404
+        if user.role != UserRole.coach:
+            return jsonify({"success": False, "message": "No es coach"}), 400
+        user.role = UserRole.user
+        log_action(db, 'demote_coach', 'user', user_id, {'email': user.email})
+        db.commit()
+        return jsonify({"success": True})
+
+# ============================================================================
+# AUDIT LOG ROUTE
+# ============================================================================
+
+@admin_bp.route('/admin/audit', methods=['GET'])
+@require_admin
+def admin_audit():
+    from models.audit import AuditLog
+    page = request.args.get('page', 1, type=int)
+    action_filter = request.args.get('action', '').strip()
+    per_page = 50
+
+    with SessionLocal() as db:
+        query = db.query(AuditLog).order_by(AuditLog.created_at.desc())
+
+        if action_filter:
+            query = query.filter(AuditLog.action == action_filter)
+
+        total = query.count()
+        total_pages = max(1, (total + per_page - 1) // per_page)
+        page = min(page, total_pages)
+
+        logs = query.offset((page - 1) * per_page).limit(per_page).all()
+
+        # Get distinct actions for filter dropdown
+        actions = [r[0] for r in db.query(AuditLog.action).distinct().order_by(AuditLog.action).all()]
+
+        return render_template('admin_audit.html',
+            logs=logs,
+            page=page,
+            total_pages=total_pages,
+            actions=actions,
+            current_filter=action_filter
+        )
 
 # ============================================================================
 # RUTINAS ROUTES
@@ -215,23 +388,23 @@ def create_rutina():
     name = (data.get('name') or '').strip()
     description = (data.get('description') or '').strip()
     user_id = data.get('user_id')
-    
+
     if not name:
         return jsonify({"success": False, "message": "El nombre es requerido"}), 400
     if not user_id:
         return jsonify({"success": False, "message": "Debe seleccionar un usuario"}), 400
-    
+
     with SessionLocal() as db:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             return jsonify({"success": False, "message": "Usuario no existe"}), 404
-        
+
         # Get current coach from session (session uses 'uid' not 'user_id')
         coach_id = session.get('uid')
         if not coach_id:
             return jsonify({"success": False, "message": "Sesión inválida"}), 401
-        
+
         rutina = Rutina(
             name=name,
             description=description or None,
@@ -240,6 +413,8 @@ def create_rutina():
             is_active=True
         )
         db.add(rutina)
+        db.flush()
+        log_action(db, 'create_rutina', 'rutina', rutina.id)
         db.commit()
         return jsonify({"success": True, "rutina_id": rutina.id})
 
@@ -258,12 +433,12 @@ def get_rutina(rutina_id):
 def update_rutina(rutina_id):
     """Update routine basic information"""
     data = request.get_json() or {}
-    
+
     with SessionLocal() as db:
         rutina = db.query(Rutina).filter(Rutina.id == rutina_id).first()
         if not rutina:
             return jsonify({"success": False, "message": "Rutina no existe"}), 404
-        
+
         if 'name' in data and data['name']:
             rutina.name = data['name'].strip()
         if 'description' in data:
@@ -293,7 +468,8 @@ def update_rutina(rutina_id):
                     return jsonify({"success": False, "message": "Fecha fin inválida"}), 400
             else:
                 rutina.end_date = None
-        
+
+        log_action(db, 'update_rutina', 'rutina', rutina_id)
         db.commit()
         return jsonify({"success": True})
 
@@ -305,6 +481,7 @@ def delete_rutina(rutina_id):
         rutina = db.query(Rutina).filter(Rutina.id == rutina_id).first()
         if not rutina:
             return jsonify({"success": False, "message": "Rutina no existe"}), 404
+        log_action(db, 'delete_rutina', 'rutina', rutina_id)
         db.delete(rutina)
         db.commit()
         return jsonify({"success": True})
@@ -319,16 +496,16 @@ def list_ejercicios():
     """List all exercises, optionally filtered by body section"""
     body_section = request.args.get('body_section')
     search = request.args.get('search', '').strip()
-    
+
     with SessionLocal() as db:
         query = db.query(Ejercicio).filter(Ejercicio.is_active == True)
-        
+
         if body_section and body_section in [bs.value for bs in BodySection]:
             query = query.filter(Ejercicio.body_section == BodySection(body_section))
-        
+
         if search:
             query = query.filter(Ejercicio.name.ilike(f'%{search}%'))
-        
+
         ejercicios = query.order_by(Ejercicio.name).all()
         return jsonify({"success": True, "ejercicios": [e.to_dict() for e in ejercicios]})
 
@@ -342,19 +519,19 @@ def add_ejercicio_to_rutina(rutina_id):
     """Add an exercise to a routine with configuration"""
     data = request.get_json() or {}
     ejercicio_id = data.get('ejercicio_id')
-    
+
     if not ejercicio_id:
         return jsonify({"success": False, "message": "Ejercicio ID requerido"}), 400
-    
+
     with SessionLocal() as db:
         rutina = db.query(Rutina).filter(Rutina.id == rutina_id).first()
         if not rutina:
             return jsonify({"success": False, "message": "Rutina no existe"}), 404
-        
+
         ejercicio = db.query(Ejercicio).filter(Ejercicio.id == ejercicio_id).first()
         if not ejercicio:
             return jsonify({"success": False, "message": "Ejercicio no existe"}), 404
-        
+
         # Check if already added
         existing = db.query(RutinaEjercicio).filter(
             RutinaEjercicio.rutina_id == rutina_id,
@@ -362,12 +539,12 @@ def add_ejercicio_to_rutina(rutina_id):
         ).first()
         if existing:
             return jsonify({"success": False, "message": "Ejercicio ya está en la rutina"}), 400
-        
+
         # Get max orden
         max_orden = db.query(RutinaEjercicio).filter(
             RutinaEjercicio.rutina_id == rutina_id
         ).count()
-        
+
         rutina_ejercicio = RutinaEjercicio(
             rutina_id=rutina_id,
             ejercicio_id=ejercicio_id,
@@ -388,7 +565,7 @@ def add_ejercicio_to_rutina(rutina_id):
 def update_rutina_ejercicio(rutina_id, re_id):
     """Update exercise configuration in a routine"""
     data = request.get_json() or {}
-    
+
     with SessionLocal() as db:
         re = db.query(RutinaEjercicio).filter(
             RutinaEjercicio.id == re_id,
@@ -396,7 +573,7 @@ def update_rutina_ejercicio(rutina_id, re_id):
         ).first()
         if not re:
             return jsonify({"success": False, "message": "Ejercicio no encontrado en rutina"}), 404
-        
+
         if 'series' in data:
             re.series = int(data['series']) if data['series'] else 3
         if 'repeticiones' in data:
@@ -409,7 +586,7 @@ def update_rutina_ejercicio(rutina_id, re_id):
             re.notas = (data['notas'] or '').strip() or None
         if 'orden' in data:
             re.orden = int(data['orden'])
-        
+
         db.commit()
         return jsonify({"success": True})
 
@@ -424,7 +601,7 @@ def remove_ejercicio_from_rutina(rutina_id, re_id):
         ).first()
         if not re:
             return jsonify({"success": False, "message": "Ejercicio no encontrado"}), 404
-        
+
         db.delete(re)
         db.commit()
         return jsonify({"success": True})
@@ -435,10 +612,10 @@ def reorder_ejercicios(rutina_id):
     """Reorder exercises in a routine"""
     data = request.get_json() or {}
     order = data.get('order', [])  # List of rutina_ejercicio IDs in new order
-    
+
     if not isinstance(order, list):
         return jsonify({"success": False, "message": "Order debe ser una lista"}), 400
-    
+
     with SessionLocal() as db:
         for idx, re_id in enumerate(order):
             re = db.query(RutinaEjercicio).filter(
@@ -467,7 +644,7 @@ def get_organized_ejercicios():
     """Get all exercises organized by body section with their images"""
     with SessionLocal() as db:
         ejercicios = db.query(Ejercicio).filter(Ejercicio.is_active == True).order_by(Ejercicio.id).all()
-        
+
         # Group by body section
         organized = {}
         for ej in ejercicios:
@@ -480,5 +657,5 @@ def get_organized_ejercicios():
                 'image_url': ej.image_url,
                 'body_section': section
             })
-        
+
         return jsonify({"success": True, "exercises": organized})

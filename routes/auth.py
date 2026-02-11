@@ -2,11 +2,15 @@ from flask import Blueprint, request, jsonify, session, redirect, render_templat
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 import secrets
-from datetime import datetime
+from datetime import datetime, date
+from functools import wraps
 from db import SessionLocal
-from models import User, UserRole, InvitationToken, InvitationPurpose
+from models import User, UserRole, InvitationToken, InvitationPurpose, Rutina, WorkoutLog, RutinaEjercicio
 from config import config
-from mailersend import Email
+try:
+    from mailersend.emails import NewEmail as Email
+except ImportError:
+    from mailersend import Email
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -18,6 +22,14 @@ INVITE_TEMPLATE = """
   <button type=submit>Guardar</button>
 </form>
 """
+
+def require_auth(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if 'uid' not in session:
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return wrapper
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -40,7 +52,7 @@ def login():
             return render_template('login.html', error="Credenciales inválidas"), 401
         session['uid'] = user.id
         session['role'] = user.role.value
-    redirect_url = '/admin/users' if user.role == UserRole.admin else '/'
+    redirect_url = '/admin/users' if user.role == UserRole.admin else '/mi-rutina'
     if request.is_json:
         return jsonify({"success": True, "redirect": redirect_url})
     return redirect(redirect_url)
@@ -76,7 +88,218 @@ def accept_invite(token):
             return redirect('/')
         return render_template_string(INVITE_TEMPLATE)
 
-# Utility to send invite email
+# ============================================================================
+# PASSWORD RESET FLOW
+# ============================================================================
+
+@auth_bp.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'GET':
+        return render_template('forgot_password.html')
+
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip().lower()
+    if not email:
+        return jsonify({"success": False, "message": "Email requerido"}), 400
+
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            # Don't reveal whether email exists
+            return jsonify({"success": True, "message": "Si el email existe, recibirás un enlace de recuperación."})
+
+        # Invalidate any previous reset tokens
+        old_tokens = db.query(InvitationToken).filter(
+            InvitationToken.user_id == user.id,
+            InvitationToken.purpose == InvitationPurpose.reset,
+            InvitationToken.used_at == None,
+            InvitationToken.invalidated == False
+        ).all()
+        for t in old_tokens:
+            t.invalidated = True
+
+        token = secrets.token_urlsafe(32)
+        reset_token = InvitationToken(
+            user_id=user.id,
+            token=token,
+            purpose=InvitationPurpose.reset,
+            expires_at=InvitationToken.new_expiry(hours=24)
+        )
+        db.add(reset_token)
+        db.commit()
+
+        send_reset_email(email, token)
+
+    return jsonify({"success": True, "message": "Si el email existe, recibirás un enlace de recuperación."})
+
+@auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    with SessionLocal() as db:
+        invite = db.query(InvitationToken).filter(
+            InvitationToken.token == token,
+            InvitationToken.purpose == InvitationPurpose.reset,
+            InvitationToken.invalidated == False
+        ).first()
+
+        if not invite or invite.used_at or invite.expires_at < datetime.utcnow():
+            if request.method == 'GET':
+                return render_template('reset_password.html', error="Este enlace ha expirado o ya fue utilizado.")
+            return jsonify({"success": False, "message": "Token inválido o expirado"}), 400
+
+        if request.method == 'GET':
+            return render_template('reset_password.html', error=None)
+
+        data = request.get_json() or {}
+        password = data.get('password') or ''
+        if len(password) < 8:
+            return jsonify({"success": False, "message": "La contraseña debe tener al menos 8 caracteres"}), 400
+
+        user = invite.user
+        user.password_hash = bcrypt.hash(password)
+        invite.used_at = datetime.utcnow()
+        db.commit()
+
+        return jsonify({"success": True, "message": "Contraseña actualizada. Redirigiendo al login..."})
+
+# ============================================================================
+# USER-FACING ROUTINE VIEW
+# ============================================================================
+
+@auth_bp.route('/mi-rutina')
+@require_auth
+def mi_rutina():
+    with SessionLocal() as db:
+        rutinas = db.query(Rutina).filter(
+            Rutina.user_id == session['uid'],
+            Rutina.is_active == True
+        ).order_by(Rutina.created_at.desc()).all()
+
+        today = date.today()
+        completed_logs = db.query(WorkoutLog.rutina_ejercicio_id).filter(
+            WorkoutLog.user_id == session['uid'],
+            WorkoutLog.date == today,
+            WorkoutLog.completed == True
+        ).all()
+        completed_ids = {row[0] for row in completed_logs}
+
+        return render_template(
+            'mi_rutina.html',
+            rutinas=rutinas,
+            completed_ids=completed_ids,
+            today=today
+        )
+
+@auth_bp.route('/mi-rutina/toggle', methods=['POST'])
+@require_auth
+def toggle_exercise():
+    data = request.get_json() or {}
+    re_id = data.get('rutina_ejercicio_id')
+    if not re_id:
+        return jsonify({"success": False, "message": "rutina_ejercicio_id requerido"}), 400
+
+    today = date.today()
+    uid = session['uid']
+
+    with SessionLocal() as db:
+        # Verify the exercise belongs to the user's routine
+        re = db.query(RutinaEjercicio).join(Rutina).filter(
+            RutinaEjercicio.id == re_id,
+            Rutina.user_id == uid,
+            Rutina.is_active == True
+        ).first()
+        if not re:
+            return jsonify({"success": False, "message": "Ejercicio no encontrado"}), 404
+
+        existing = db.query(WorkoutLog).filter(
+            WorkoutLog.user_id == uid,
+            WorkoutLog.rutina_ejercicio_id == re_id,
+            WorkoutLog.date == today
+        ).first()
+
+        if existing:
+            db.delete(existing)
+            db.commit()
+            return jsonify({"success": True, "completed": False})
+        else:
+            log = WorkoutLog(
+                user_id=uid,
+                rutina_ejercicio_id=re_id,
+                date=today,
+                completed=True
+            )
+            db.add(log)
+            db.commit()
+            return jsonify({"success": True, "completed": True})
+
+@auth_bp.route('/mi-rutina/history')
+@require_auth
+def workout_history():
+    uid = session['uid']
+    with SessionLocal() as db:
+        from sqlalchemy import func
+
+        # Get all routines for the user to count total exercises
+        rutinas = db.query(Rutina).filter(
+            Rutina.user_id == uid,
+            Rutina.is_active == True
+        ).all()
+        total_exercises = sum(len(r.ejercicios) for r in rutinas)
+
+        # Get completed counts grouped by date (last 30 days)
+        logs = db.query(
+            WorkoutLog.date,
+            func.count(WorkoutLog.id).label('completed')
+        ).filter(
+            WorkoutLog.user_id == uid,
+            WorkoutLog.completed == True
+        ).group_by(WorkoutLog.date).order_by(WorkoutLog.date.desc()).limit(30).all()
+
+        history = [
+            {
+                "date": row.date.isoformat(),
+                "total": total_exercises,
+                "completed": row.completed
+            }
+            for row in logs
+        ]
+
+        return jsonify({"history": history})
+
+@auth_bp.route('/mi-rutina/history/<date_str>')
+@require_auth
+def workout_history_detail(date_str):
+    uid = session['uid']
+    try:
+        target_date = date.fromisoformat(date_str)
+    except ValueError:
+        return jsonify({"success": False, "message": "Fecha inválida"}), 400
+
+    with SessionLocal() as db:
+        logs = db.query(WorkoutLog).filter(
+            WorkoutLog.user_id == uid,
+            WorkoutLog.date == target_date,
+            WorkoutLog.completed == True
+        ).all()
+
+        exercises = []
+        for log in logs:
+            re = log.rutina_ejercicio
+            ej = re.ejercicio
+            exercises.append({
+                "name": ej.name,
+                "body_section": ej.body_section.value,
+                "image_url": ej.image_url,
+                "series": re.series,
+                "repeticiones": re.repeticiones,
+                "peso": re.peso,
+                "descanso": re.descanso,
+            })
+
+        return jsonify({"date": date_str, "exercises": exercises})
+
+# ============================================================================
+# EMAIL UTILITIES
+# ============================================================================
 
 def send_invitation_email(email_to: str, token: str):
     if not config.MAILERSEND_API_KEY:
@@ -90,6 +313,26 @@ def send_invitation_email(email_to: str, token: str):
     html_content = f"""
     <p>Te invitamos a crear tu cuenta UrbanMood.</p>
     <p><a href='https://urbanmood.net/invite/{token}'>Crear contraseña</a> (expira en 72h)</p>
+    """
+    mailer.set_mail_from(mail_from, mail_body)
+    mailer.set_mail_to(recipients, mail_body)
+    mailer.set_subject(subject, mail_body)
+    mailer.set_html_content(html_content, mail_body)
+    mailer.send(mail_body)
+
+def send_reset_email(email_to: str, token: str):
+    if not config.MAILERSEND_API_KEY:
+        print(f"[RESET LINK] https://urbanmood.net/reset-password/{token}")
+        return
+    mailer = Email(config.MAILERSEND_API_KEY)
+    mail_body = {}
+    mail_from = {"name": config.MAIL_FROM_NAME, "email": config.MAIL_FROM_EMAIL}
+    recipients = [{"name": email_to, "email": email_to}]
+    subject = "Restablecer contraseña - UrbanMood"
+    html_content = f"""
+    <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+    <p><a href='https://urbanmood.net/reset-password/{token}'>Restablecer contraseña</a> (expira en 24h)</p>
+    <p>Si no solicitaste este cambio, podés ignorar este email.</p>
     """
     mailer.set_mail_from(mail_from, mail_body)
     mailer.set_mail_to(recipients, mail_body)

@@ -104,32 +104,34 @@ def seed_ejercicios():
                 'image_url': None
             },
             
-            # BRAZOS
+            # BÍCEPS
             {
                 'name': 'Curl de Bíceps con Barra',
                 'description': 'De pie, flexiona los codos llevando la barra hacia los hombros.',
-                'body_section': BodySection.brazos,
+                'body_section': BodySection.biceps,
                 'exercise_type': ExerciseType.fuerza,
                 'image_url': None
             },
             {
                 'name': 'Curl con Mancuernas',
                 'description': 'Sentado o de pie, flexiona los codos alternando brazos.',
-                'body_section': BodySection.brazos,
+                'body_section': BodySection.biceps,
                 'exercise_type': ExerciseType.fuerza,
                 'image_url': None
             },
+
+            # TRÍCEPS
             {
                 'name': 'Press Francés',
                 'description': 'Acostado, baja la barra hacia la frente flexionando solo los codos.',
-                'body_section': BodySection.brazos,
+                'body_section': BodySection.triceps,
                 'exercise_type': ExerciseType.fuerza,
                 'image_url': None
             },
             {
                 'name': 'Fondos en Paralelas',
                 'description': 'En paralelas, baja el cuerpo flexionando los codos y empuja hacia arriba.',
-                'body_section': BodySection.brazos,
+                'body_section': BodySection.triceps,
                 'exercise_type': ExerciseType.fuerza,
                 'image_url': None
             },

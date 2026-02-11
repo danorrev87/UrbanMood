@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>UrbanMood - Auditoría</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background:#0d0d0d;color:#e5e7e8;font-family:'Poppins',sans-serif;margin:0;padding-left:236px;transition:none; }
+    .admin-content { opacity:0; animation:fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .admin-sidebar { position:fixed; top:0; left:0; height:100vh; width:236px; background:#101010; border-right:1px solid #1f1f1f; padding:18px 14px; font-family:'Poppins',sans-serif; z-index:1200; display:flex; flex-direction:column; gap:14px; overflow:hidden; box-sizing:border-box; }
+    .admin-sidebar .admin-brand { margin:0 0 10px; background:#3d4348; padding:6px 6px 4px; border-radius:4px; }
+    .admin-sidebar nav ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+    .admin-sidebar nav a { display:flex; align-items:center; gap:10px; padding:8px 10px; color:#c9ced2; font-size:.75rem; font-weight:600; text-decoration:none; border-radius:8px; transition:background .15s ease, color .15s ease; }
+    .admin-sidebar nav a:hover { background:#1d1d1d; color:#e8eaec; }
+    .admin-sidebar nav a.active { background:#1f1f1f; color:#c2d03a; border:1px solid #2d2d2d; }
+    .admin-sidebar nav a i { width:16px; text-align:center; font-size:.9rem; }
+    .admin-sidebar nav li.sep { margin:6px 0; border-top:1px solid #242424; }
+    main { padding:46px 52px 80px; }
+    h1 { margin:0 0 26px;font-size:2rem;color:#c2d03a; }
+    .filters { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+    .filters select { background:#181818; border:1px solid #303030; color:#eee; padding:8px 12px; border-radius:8px; font-size:.75rem; }
+    table { width:100%;border-collapse:collapse;background:#121212;border:1px solid #262626;border-radius:12px;overflow:hidden; }
+    th,td { padding:10px 14px;font-size:.8rem;text-align:left; }
+    th { background:#181818;font-weight:600;letter-spacing:.05em;text-transform:uppercase;font-size:.65rem;color:#9ba1a6; }
+    tbody tr { border-top:1px solid #1f1f1f; }
+    tbody tr:hover { background:#1b1b1b; }
+    .action-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:.6rem; font-weight:600; letter-spacing:.03em; }
+    .action-badge.create { background:#1f3c1f; color:#7edc7e; }
+    .action-badge.update { background:#2a3520; color:#c2d03a; }
+    .action-badge.delete { background:#402020; color:#ff8d8d; }
+    .action-badge.promote { background:#1f2f3c; color:#7eb8dc; }
+    .action-badge.demote { background:#3c2f1f; color:#dcb87e; }
+    .meta-col { font-size:.65rem; color:#8a9096; max-width:300px; word-break:break-word; }
+    .pagination { display:flex; gap:8px; margin-top:24px; justify-content:center; }
+    .pagination a { padding:6px 12px; background:#1c1c1c; border:1px solid #303030; border-radius:8px; color:#c2d03a; text-decoration:none; font-size:.75rem; font-weight:600; }
+    .pagination a:hover { background:#252525; }
+    .pagination a.active { background:#c2d03a; color:#111; border-color:#c2d03a; }
+    .empty { text-align:center;opacity:.6;padding:50px 10px;border:2px dashed #222;border-radius:18px;font-size:.8rem; }
+    @media (max-width:860px){ body { padding-left:0!important; } main { padding:24px 16px 60px; } }
+  </style>
+</head>
+<body>
+{% include '_admin_sidebar.html' %}
+<main class="admin-content">
+  <h1>Auditoría</h1>
+
+  <div class="filters">
+    <select id="filter-action" onchange="applyFilter()">
+      <option value="">Todas las acciones</option>
+      {% for action in actions %}
+      <option value="{{ action }}" {% if action == current_filter %}selected{% endif %}>{{ action }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  {% if not logs %}
+  <div class="empty">
+    <i class="fas fa-clock-rotate-left" style="font-size:2.5rem;margin-bottom:12px;opacity:.4;"></i><br>
+    No hay registros de auditoría.
+  </div>
+  {% else %}
+  <table>
+    <thead>
+      <tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Entidad</th><th>ID</th><th>Detalles</th></tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>{{ log.user.name if log.user else 'Sistema' }}</td>
+        <td>
+          {% if 'create' in log.action %}<span class="action-badge create">{{ log.action }}</span>
+          {% elif 'update' in log.action %}<span class="action-badge update">{{ log.action }}</span>
+          {% elif 'delete' in log.action %}<span class="action-badge delete">{{ log.action }}</span>
+          {% elif 'promote' in log.action %}<span class="action-badge promote">{{ log.action }}</span>
+          {% elif 'demote' in log.action %}<span class="action-badge demote">{{ log.action }}</span>
+          {% else %}<span class="action-badge update">{{ log.action }}</span>
+          {% endif %}
+        </td>
+        <td>{{ log.entity or '' }}</td>
+        <td>{{ log.entity_id or '' }}</td>
+        <td class="meta-col">{{ log.meta or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if total_pages > 1 %}
+  <div class="pagination">
+    {% for p in range(1, total_pages + 1) %}
+    <a href="?page={{ p }}{% if current_filter %}&action={{ current_filter }}{% endif %}" class="{% if p == page %}active{% endif %}">{{ p }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endif %}
+</main>
+
+<script>
+function applyFilter() {
+  const action = document.getElementById('filter-action').value;
+  const url = new URL(window.location);
+  if(action) url.searchParams.set('action', action);
+  else url.searchParams.delete('action');
+  url.searchParams.delete('page');
+  window.location = url;
+}
+</script>
+</body>
+</html>

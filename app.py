@@ -6,7 +6,10 @@ from db import Base, engine
 from config import config as app_config
 from routes.auth import auth_bp
 from routes.admin import admin_bp
-from mailersend import Email
+try:
+    from mailersend.emails import NewEmail as Email
+except ImportError:
+    from mailersend import Email
 from dotenv import load_dotenv
 from flask import session
 
@@ -198,9 +201,10 @@ def health():
 
 @app.route('/')
 def index():
-    # Redirect logged-in users to admin panel
-    if session.get('uid') and session.get('role') == 'admin':
-        return redirect('/admin/users')
+    if session.get('uid'):
+        if session.get('role') == 'admin':
+            return redirect('/admin/users')
+        return redirect('/mi-rutina')
     return render_template('index.html')
 
 @app.context_processor

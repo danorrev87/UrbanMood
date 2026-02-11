@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>UrbanMood - Sucursales</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background:#0d0d0d;color:#e5e7e8;font-family:'Poppins',sans-serif;margin:0;padding-left:236px;transition:none; }
+    .admin-content { opacity:0; animation:fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .admin-sidebar { position:fixed; top:0; left:0; height:100vh; width:236px; background:#101010; border-right:1px solid #1f1f1f; padding:18px 14px; font-family:'Poppins',sans-serif; z-index:1200; display:flex; flex-direction:column; gap:14px; overflow:hidden; box-sizing:border-box; }
+    .admin-sidebar .admin-brand { margin:0 0 10px; background:#3d4348; padding:6px 6px 4px; border-radius:4px; }
+    .admin-sidebar nav ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+    .admin-sidebar nav a { display:flex; align-items:center; gap:10px; padding:8px 10px; color:#c9ced2; font-size:.75rem; font-weight:600; text-decoration:none; border-radius:8px; transition:background .15s ease, color .15s ease; }
+    .admin-sidebar nav a:hover { background:#1d1d1d; color:#e8eaec; }
+    .admin-sidebar nav a.active { background:#1f1f1f; color:#c2d03a; border:1px solid #2d2d2d; }
+    .admin-sidebar nav a i { width:16px; text-align:center; font-size:.9rem; }
+    .admin-sidebar nav li.sep { margin:6px 0; border-top:1px solid #242424; }
+    main { padding:46px 52px 80px; }
+    h1 { margin:0 0 26px;font-size:2rem;color:#c2d03a; }
+    .toolbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin-bottom:24px; }
+    .btn-create { background:#c2d03a; color:#111; border:none; padding:10px 18px; font-size:.75rem; font-weight:600; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+    .btn-create:hover { filter:brightness(1.05); }
+    table { width:100%;border-collapse:collapse;background:#121212;border:1px solid #262626;border-radius:12px;overflow:hidden; }
+    th,td { padding:10px 14px;font-size:.85rem;text-align:left; }
+    th { background:#181818;font-weight:600;letter-spacing:.05em;text-transform:uppercase;font-size:.7rem;color:#9ba1a6; }
+    tbody tr { border-top:1px solid #1f1f1f; }
+    tbody tr:hover { background:#1b1b1b; }
+    .status-badge { padding:2px 8px;border-radius:999px;font-size:.6rem;font-weight:600;letter-spacing:.05em; }
+    .status-badge.active { background:#1f3c1f;color:#7edc7e; }
+    .status-badge.inactive { background:#402020;color:#ff8d8d; }
+    .icon-btn { background:#1c1c1c;border:1px solid #2c2c2c;color:#c2d03a;padding:4px 8px;border-radius:6px;font-size:.65rem;font-weight:600;cursor:pointer;margin-right:4px; }
+    .icon-btn.danger { color:#ff7b7b; }
+    .icon-btn:hover { background:#252525; }
+    td input.inline { width:100%;background:#181818;border:1px solid #303030;color:#eee;border-radius:6px;padding:4px 6px;font-size:.7rem; }
+    td input.inline:focus { outline:none;border-color:#b6c628; }
+    .empty { text-align:center;opacity:.6;padding:50px 10px;border:2px dashed #222;border-radius:18px;font-size:.8rem; }
+    .modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;padding-top:90px;z-index:1500; }
+    .modal-backdrop.show { display:flex; }
+    .modal { width:460px;background:#141414;border:1px solid #2a2a2a;border-radius:18px;padding:28px 26px 30px;box-shadow:0 30px 70px -24px rgba(0,0,0,.7); }
+    .modal h2 { margin:0 0 18px;font-size:1.2rem;color:#c2d03a; }
+    .modal label { display:block;font-size:.6rem;font-weight:600;letter-spacing:.5px;color:#9ca1a5;margin-bottom:6px;margin-top:12px; }
+    .modal label:first-of-type { margin-top:0; }
+    .modal input { width:100%;background:#1b1b1b;border:1px solid #2c2c2c;color:#f5f6f7;padding:10px 12px;font-size:.75rem;border-radius:10px;font-family:inherit;box-sizing:border-box; }
+    .modal .actions-bar { margin-top:20px;display:flex;justify-content:flex-end;gap:10px; }
+    .btn-secondary { background:#222;color:#dde1e4;border:1px solid #303030;padding:10px 18px;font-size:.65rem;border-radius:10px;cursor:pointer;font-weight:600; }
+    .btn-secondary:hover { background:#2a2a2a; }
+    .btn-primary { background:#c2d03a;color:#111;border:none;padding:10px 22px;font-size:.7rem;border-radius:10px;font-weight:600;cursor:pointer; }
+    .btn-primary:hover { filter:brightness(1.05); }
+    .fade { transition:background-color .6s ease; }
+    @media (max-width:860px){ body { padding-left:0!important; } main { padding:24px 16px 60px; } }
+  </style>
+</head>
+<body>
+{% include '_admin_sidebar.html' %}
+<main class="admin-content">
+  <div class="toolbar">
+    <h1>Sucursales</h1>
+    <button class="btn-create" id="open-create"><i class="fas fa-plus"></i> Nueva Sucursal</button>
+  </div>
+
+  {% if not sucursales %}
+  <div class="empty">
+    <i class="fas fa-location-dot" style="font-size:2.5rem;margin-bottom:12px;opacity:.4;"></i><br>
+    No hay sucursales creadas todavía.
+  </div>
+  {% else %}
+  <table>
+    <thead>
+      <tr><th>Nombre</th><th>Dirección</th><th>Teléfono</th><th>Estado</th><th>Acciones</th></tr>
+    </thead>
+    <tbody id="rows">
+      {% for s in sucursales %}
+      <tr data-id="{{ s.id }}" class="fade">
+        <td class="name" data-value="{{ s.name }}">{{ s.name }}</td>
+        <td class="address" data-value="{{ s.address or '' }}">{{ s.address or '' }}</td>
+        <td class="phone" data-value="{{ s.phone or '' }}">{{ s.phone or '' }}</td>
+        <td class="status" data-value="{{ '1' if s.is_active else '0' }}">
+          <span class="status-badge {{ 'active' if s.is_active else 'inactive' }}">{{ 'Activa' if s.is_active else 'Inactiva' }}</span>
+        </td>
+        <td>
+          <button class="icon-btn edit">Editar</button>
+          <button class="icon-btn save" style="display:none;">Guardar</button>
+          <button class="icon-btn cancel" style="display:none;">Cancelar</button>
+          <button class="icon-btn danger delete">Eliminar</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</main>
+
+<!-- Create Modal -->
+<div class="modal-backdrop" id="modal-create">
+  <div class="modal">
+    <h2>Nueva Sucursal</h2>
+    <form id="form-create">
+      <label>Nombre</label>
+      <input name="name" required placeholder="Ej: Palermo" maxlength="120">
+      <label>Dirección</label>
+      <input name="address" placeholder="Calle, Ciudad">
+      <label>Teléfono</label>
+      <input name="phone" placeholder="Opcional">
+      <div class="actions-bar">
+        <button type="button" class="btn-secondary" onclick="document.getElementById('modal-create').classList.remove('show')">Cancelar</button>
+        <button type="submit" class="btn-primary">Crear</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const openBtn = document.getElementById('open-create');
+const modal = document.getElementById('modal-create');
+const form = document.getElementById('form-create');
+const rows = document.getElementById('rows');
+
+openBtn.addEventListener('click', () => modal.classList.add('show'));
+modal.addEventListener('click', e => { if(e.target === modal) modal.classList.remove('show'); });
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(form).entries());
+  const res = await fetch('/admin/sucursales', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+  const j = await res.json();
+  if(j.success) location.reload();
+  else alert(j.message || 'Error');
+});
+
+if(rows) rows.addEventListener('click', async e => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const tr = btn.closest('tr');
+  const id = tr.dataset.id;
+
+  if(btn.classList.contains('edit')){
+    if(tr.dataset.editing) return;
+    tr.dataset.editing = '1';
+    ['name','address','phone'].forEach(field => {
+      const td = tr.querySelector(`.${field}`);
+      td.innerHTML = `<input class="inline" name="${field}" value="${(td.dataset.value||'').replace(/"/g,'&quot;')}">`;
+    });
+    tr.querySelector('.edit').style.display='none';
+    tr.querySelector('.delete').style.display='none';
+    tr.querySelector('.save').style.display='inline-block';
+    tr.querySelector('.cancel').style.display='inline-block';
+  } else if(btn.classList.contains('cancel')){
+    location.reload();
+  } else if(btn.classList.contains('save')){
+    const payload = {};
+    ['name','address','phone'].forEach(f => { payload[f] = tr.querySelector(`input[name="${f}"]`).value; });
+    const res = await fetch(`/admin/sucursales/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    const j = await res.json();
+    if(j.success) location.reload();
+    else alert(j.message || 'Error');
+  } else if(btn.classList.contains('delete')){
+    if(!confirm('¿Eliminar esta sucursal?')) return;
+    const res = await fetch(`/admin/sucursales/${id}`, {method:'DELETE'});
+    const j = await res.json();
+    if(j.success) tr.remove();
+    else alert(j.message || 'Error');
+  }
+});
+</script>
+</body>
+</html>
