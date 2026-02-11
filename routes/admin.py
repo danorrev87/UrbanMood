@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, send_from_directory
 from db import SessionLocal
-from models import User, UserRole, InvitationToken, InvitationPurpose, Clase, Rutina, Ejercicio, RutinaEjercicio, BodySection, Sucursal
+from models import User, UserRole, InvitationToken, InvitationPurpose, Clase, Rutina, Ejercicio, RutinaEjercicio, BodySection, Sucursal, RutinaUser
 from routes.auth import send_invitation_email
 from utils.audit import log_action
 from datetime import datetime
@@ -8,6 +8,14 @@ import secrets
 import os
 
 admin_bp = Blueprint('admin', __name__)
+
+
+def deactivate_user_routines(db, user_id):
+    """Deactivate all active routine assignments for a user."""
+    db.query(RutinaUser).filter(
+        RutinaUser.user_id == user_id,
+        RutinaUser.is_active == True
+    ).update({'is_active': False})
 
 # Simple decorator placeholder
 from functools import wraps
@@ -17,6 +25,14 @@ def require_admin(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if session.get('role') != UserRole.admin.value:
+            return jsonify({"success": False, "message": "No autorizado"}), 403
+        return f(*args, **kwargs)
+    return wrapper
+
+def require_coach_or_admin(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if session.get('role') not in (UserRole.admin.value, UserRole.coach.value):
             return jsonify({"success": False, "message": "No autorizado"}), 403
         return f(*args, **kwargs)
     return wrapper
@@ -124,7 +140,54 @@ def user_detail(user_id):
         if not user:
             return jsonify({"success": False, "message": "No existe"}), 404
         sucursales = db.query(Sucursal).filter(Sucursal.is_active == True).order_by(Sucursal.name).all()
-        return render_template('admin_user_detail.html', user=user, sucursales=sucursales)
+        # Current active routine assignment
+        active_assignment = db.query(RutinaUser).filter(
+            RutinaUser.user_id == user_id,
+            RutinaUser.is_active == True
+        ).first()
+        # All available routines for the dropdown
+        rutinas = db.query(Rutina).filter(Rutina.is_active == True).order_by(Rutina.name).all()
+        return render_template('admin_user_detail.html', user=user, sucursales=sucursales,
+                               active_assignment=active_assignment, rutinas=rutinas)
+
+@admin_bp.route('/admin/users/<int:user_id>/assign-rutina', methods=['PATCH'])
+@require_admin
+def assign_rutina_to_user(user_id):
+    """Assign or unassign a routine to/from a user."""
+    data = request.get_json() or {}
+    rutina_id = data.get('rutina_id')
+
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return jsonify({"success": False, "message": "Usuario no existe"}), 404
+
+        # Deactivate current assignments
+        deactivate_user_routines(db, user_id)
+
+        if rutina_id:
+            rutina = db.query(Rutina).filter(Rutina.id == rutina_id).first()
+            if not rutina:
+                return jsonify({"success": False, "message": "Rutina no existe"}), 404
+
+            # Check if assignment already exists (reactivate)
+            existing = db.query(RutinaUser).filter(
+                RutinaUser.rutina_id == rutina_id,
+                RutinaUser.user_id == user_id
+            ).first()
+            if existing:
+                existing.is_active = True
+            else:
+                assignment = RutinaUser(rutina_id=rutina_id, user_id=user_id, is_active=True)
+                db.add(assignment)
+
+            log_action(db, 'assign_rutina', 'user', user_id, {'rutina_id': rutina_id})
+            db.commit()
+            return jsonify({"success": True, "rutina_name": rutina.name})
+        else:
+            log_action(db, 'unassign_rutina', 'user', user_id)
+            db.commit()
+            return jsonify({"success": True, "rutina_name": None})
 
 # ============================================================================
 # CLASES ROUTES
@@ -283,7 +346,10 @@ def admin_entrenadores():
         coach_data = []
         for coach in coaches:
             rutinas_count = db.query(Rutina).filter(Rutina.created_by_coach_id == coach.id).count()
-            users_count = db.query(Rutina.user_id).filter(Rutina.created_by_coach_id == coach.id).distinct().count()
+            users_count = db.query(RutinaUser.user_id).join(Rutina).filter(
+                Rutina.created_by_coach_id == coach.id,
+                RutinaUser.is_active == True
+            ).distinct().count()
             coach.rutinas_count = rutinas_count
             coach.users_count = users_count
             coach_data.append(coach)
@@ -370,37 +436,35 @@ def admin_audit():
 # ============================================================================
 
 @admin_bp.route('/admin/rutinas', methods=['GET'])
-@require_admin
+@require_coach_or_admin
 def list_rutinas():
     """List all routines with user and coach information"""
     with SessionLocal() as db:
-        rutinas = db.query(Rutina).order_by(Rutina.created_at.desc()).all()
+        from sqlalchemy.orm import joinedload
+        rutinas = db.query(Rutina).options(
+            joinedload(Rutina.assigned_users).joinedload(RutinaUser.user)
+        ).order_by(Rutina.created_at.desc()).all()
         # Show all users (any role can have a routine assigned)
         users = db.query(User).filter(User.is_active == True).order_by(User.name).all()
         coaches = db.query(User).filter(User.role.in_([UserRole.coach, UserRole.admin])).order_by(User.name).all()
         return render_template('admin_rutinas.html', rutinas=rutinas, users=users, coaches=coaches)
 
 @admin_bp.route('/admin/rutinas/create', methods=['POST'])
-@require_admin
+@require_coach_or_admin
 def create_rutina():
-    """Create a new routine"""
+    """Create a new routine and assign to selected users"""
     data = request.get_json() or {}
     name = (data.get('name') or '').strip()
     description = (data.get('description') or '').strip()
-    user_id = data.get('user_id')
+    user_ids = data.get('user_ids', [])
 
     if not name:
         return jsonify({"success": False, "message": "El nombre es requerido"}), 400
-    if not user_id:
-        return jsonify({"success": False, "message": "Debe seleccionar un usuario"}), 400
+    if not user_ids:
+        return jsonify({"success": False, "message": "Debe seleccionar al menos un usuario"}), 400
 
     with SessionLocal() as db:
-        # Verify user exists
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            return jsonify({"success": False, "message": "Usuario no existe"}), 404
-
-        # Get current coach from session (session uses 'uid' not 'user_id')
+        # Get current coach from session
         coach_id = session.get('uid')
         if not coach_id:
             return jsonify({"success": False, "message": "Sesión inválida"}), 401
@@ -408,18 +472,27 @@ def create_rutina():
         rutina = Rutina(
             name=name,
             description=description or None,
-            user_id=user_id,
             created_by_coach_id=coach_id,
             is_active=True
         )
         db.add(rutina)
         db.flush()
-        log_action(db, 'create_rutina', 'rutina', rutina.id)
+
+        for uid in user_ids:
+            user = db.query(User).filter(User.id == uid).first()
+            if not user:
+                continue
+            # Deactivate previous active assignments for this user
+            deactivate_user_routines(db, uid)
+            assignment = RutinaUser(rutina_id=rutina.id, user_id=uid, is_active=True)
+            db.add(assignment)
+
+        log_action(db, 'create_rutina', 'rutina', rutina.id, {'user_ids': user_ids})
         db.commit()
         return jsonify({"success": True, "rutina_id": rutina.id})
 
 @admin_bp.route('/admin/rutinas/<int:rutina_id>', methods=['GET'])
-@require_admin
+@require_coach_or_admin
 def get_rutina(rutina_id):
     """Get routine details with exercises"""
     with SessionLocal() as db:
@@ -429,9 +502,9 @@ def get_rutina(rutina_id):
         return jsonify({"success": True, "rutina": rutina.to_dict(include_ejercicios=True)})
 
 @admin_bp.route('/admin/rutinas/<int:rutina_id>/update', methods=['PATCH'])
-@require_admin
+@require_coach_or_admin
 def update_rutina(rutina_id):
-    """Update routine basic information"""
+    """Update routine basic information and user assignments"""
     data = request.get_json() or {}
 
     with SessionLocal() as db:
@@ -443,11 +516,29 @@ def update_rutina(rutina_id):
             rutina.name = data['name'].strip()
         if 'description' in data:
             rutina.description = (data['description'] or '').strip() or None
-        if 'user_id' in data:
-            user = db.query(User).filter(User.id == data['user_id']).first()
-            if not user:
-                return jsonify({"success": False, "message": "Usuario no existe"}), 404
-            rutina.user_id = data['user_id']
+        if 'user_ids' in data:
+            new_user_ids = set(data['user_ids'])
+            current_assignments = {au.user_id: au for au in rutina.assigned_users}
+            current_user_ids = set(current_assignments.keys())
+
+            # Remove users no longer in list
+            for uid in current_user_ids - new_user_ids:
+                db.delete(current_assignments[uid])
+
+            # Add new users
+            for uid in new_user_ids - current_user_ids:
+                user = db.query(User).filter(User.id == uid).first()
+                if not user:
+                    continue
+                deactivate_user_routines(db, uid)
+                assignment = RutinaUser(rutina_id=rutina.id, user_id=uid, is_active=True)
+                db.add(assignment)
+
+            # Ensure existing assignments for users still in list are active
+            for uid in new_user_ids & current_user_ids:
+                if not current_assignments[uid].is_active:
+                    deactivate_user_routines(db, uid)
+                    current_assignments[uid].is_active = True
         if 'is_active' in data:
             rutina.is_active = bool(data['is_active'])
         if 'start_date' in data:
@@ -474,7 +565,7 @@ def update_rutina(rutina_id):
         return jsonify({"success": True})
 
 @admin_bp.route('/admin/rutinas/<int:rutina_id>', methods=['DELETE'])
-@require_admin
+@require_coach_or_admin
 def delete_rutina(rutina_id):
     """Delete a routine"""
     with SessionLocal() as db:
@@ -491,7 +582,7 @@ def delete_rutina(rutina_id):
 # ============================================================================
 
 @admin_bp.route('/admin/ejercicios', methods=['GET'])
-@require_admin
+@require_coach_or_admin
 def list_ejercicios():
     """List all exercises, optionally filtered by body section"""
     body_section = request.args.get('body_section')
@@ -514,7 +605,7 @@ def list_ejercicios():
 # ============================================================================
 
 @admin_bp.route('/admin/rutinas/<int:rutina_id>/ejercicios', methods=['POST'])
-@require_admin
+@require_coach_or_admin
 def add_ejercicio_to_rutina(rutina_id):
     """Add an exercise to a routine with configuration"""
     data = request.get_json() or {}
@@ -561,7 +652,7 @@ def add_ejercicio_to_rutina(rutina_id):
         return jsonify({"success": True, "rutina_ejercicio": rutina_ejercicio.to_dict()})
 
 @admin_bp.route('/admin/rutinas/<int:rutina_id>/ejercicios/<int:re_id>', methods=['PATCH'])
-@require_admin
+@require_coach_or_admin
 def update_rutina_ejercicio(rutina_id, re_id):
     """Update exercise configuration in a routine"""
     data = request.get_json() or {}
@@ -591,7 +682,7 @@ def update_rutina_ejercicio(rutina_id, re_id):
         return jsonify({"success": True})
 
 @admin_bp.route('/admin/rutinas/<int:rutina_id>/ejercicios/<int:re_id>', methods=['DELETE'])
-@require_admin
+@require_coach_or_admin
 def remove_ejercicio_from_rutina(rutina_id, re_id):
     """Remove an exercise from a routine"""
     with SessionLocal() as db:
@@ -607,7 +698,7 @@ def remove_ejercicio_from_rutina(rutina_id, re_id):
         return jsonify({"success": True})
 
 @admin_bp.route('/admin/rutinas/<int:rutina_id>/ejercicios/reorder', methods=['POST'])
-@require_admin
+@require_coach_or_admin
 def reorder_ejercicios(rutina_id):
     """Reorder exercises in a routine"""
     data = request.get_json() or {}

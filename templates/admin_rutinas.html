@@ -105,9 +105,17 @@
 <main class="admin-content">
   <div class="toolbar">
     <h1>Rutinas</h1>
-    <button class="btn-create" id="open-create"><i class="fas fa-plus"></i> Nueva Rutina</button>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <select id="filter-user" style="background:#1b1b1b;border:1px solid #2c2c2c;color:#e5e7e8;padding:8px 12px;border-radius:10px;font-size:.75rem;min-width:200px;">
+        <option value="">Todos los usuarios</option>
+        {% for user in users %}
+        <option value="{{ user.id }}">{{ user.name }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn-create" id="open-create"><i class="fas fa-plus"></i> Nueva Rutina</button>
+    </div>
   </div>
-  
+
   <div class="rutinas-list" id="rutinas-list">
     {% if not rutinas %}
     <div class="empty">
@@ -116,15 +124,25 @@
     </div>
     {% else %}
     {% for rutina in rutinas %}
-    <div class="rutina-card {% if not rutina.is_active %}inactive{% endif %}" data-id="{{ rutina.id }}">
+    <div class="rutina-card {% if not rutina.is_active %}inactive{% endif %}" data-id="{{ rutina.id }}" data-user-ids="{{ rutina.assigned_users|selectattr('is_active')|map(attribute='user_id')|list|join(',') }}">
       <div class="rutina-info">
         <h3>{{ rutina.name }}</h3>
         <div class="rutina-meta">
-          <span><i class="fas fa-user"></i> {{ rutina.user.name }} ({{ rutina.user.email }})</span>
           <span><i class="fas fa-user-tie"></i> Coach: {{ rutina.coach.name }}</span>
           <span><i class="fas fa-dumbbell"></i> {{ rutina.ejercicios|length }} ejercicios</span>
           {% if not rutina.is_active %}<span style="color:#ff7b7b;"><i class="fas fa-circle-xmark"></i> Inactiva</span>{% endif %}
         </div>
+        {% if rutina.assigned_users %}
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+          {% for au in rutina.assigned_users %}
+          <span style="background:#1a2a1a;border:1px solid #2d4a2d;color:#85e085;padding:3px 10px;border-radius:20px;font-size:.6rem;font-weight:600;">
+            <i class="fas fa-user" style="margin-right:3px;"></i>{{ au.user.name }}{% if not au.is_active %} <span style="color:#ff7b7b;">(inactivo)</span>{% endif %}
+          </span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div style="margin-top:8px;font-size:.6rem;color:#666;">Sin usuarios asignados</div>
+        {% endif %}
       </div>
       <div class="rutina-actions">
         <button onclick="editRutina({{ rutina.id }})"><i class="fas fa-edit"></i> Editar</button>
@@ -143,18 +161,20 @@
     <form id="form-create">
       <label>Nombre de la Rutina</label>
       <input type="text" name="name" placeholder="Ej: Rutina Fullbody Semana 1" required>
-      
-      <label>Asignar a Usuario</label>
-      <select name="user_id" required>
-        <option value="">Seleccionar usuario...</option>
+
+      <label>Asignar a Usuarios</label>
+      <div class="user-checklist" id="create-user-checklist" style="max-height:180px;overflow-y:auto;background:#1b1b1b;border:1px solid #2c2c2c;border-radius:10px;padding:8px 12px;">
         {% for user in users %}
-        <option value="{{ user.id }}">{{ user.name }} - {{ user.email }}</option>
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;font-size:.75rem;color:#e5e7e8;border-bottom:1px solid #222;">
+          <input type="checkbox" name="user_ids" value="{{ user.id }}" style="width:auto;accent-color:#c2d03a;">
+          {{ user.name }} <span style="color:#8a9096;font-size:.65rem;">{{ user.email }}</span>
+        </label>
         {% endfor %}
-      </select>
-      
+      </div>
+
       <label>Descripción / Notas (Opcional)</label>
       <textarea name="description" placeholder="Notas o instrucciones para el usuario"></textarea>
-      
+
       <div class="actions-bar">
         <button type="button" class="btn-secondary" onclick="closeModal('modal-create')">Cancelar</button>
         <button type="submit" class="btn-primary">Crear Rutina</button>
@@ -170,20 +190,23 @@
     <div class="modal-body">
       <form id="form-edit">
         <input type="hidden" name="rutina_id">
-        
+
         <label>Nombre de la Rutina</label>
         <input type="text" name="name" required>
-        
-        <label>Asignar a Usuario</label>
-        <select name="user_id" required>
+
+        <label>Asignar a Usuarios</label>
+        <div class="user-checklist" id="edit-user-checklist" style="max-height:180px;overflow-y:auto;background:#1b1b1b;border:1px solid #2c2c2c;border-radius:10px;padding:8px 12px;">
           {% for user in users %}
-          <option value="{{ user.id }}">{{ user.name }} - {{ user.email }}</option>
+          <label style="display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;font-size:.75rem;color:#e5e7e8;border-bottom:1px solid #222;">
+            <input type="checkbox" name="user_ids" value="{{ user.id }}" style="width:auto;accent-color:#c2d03a;">
+            {{ user.name }} <span style="color:#8a9096;font-size:.65rem;">{{ user.email }}</span>
+          </label>
           {% endfor %}
-        </select>
-        
+        </div>
+
         <label>Descripción / Notas</label>
         <textarea name="description"></textarea>
-        
+
         <label>Estado</label>
         <select name="is_active">
           <option value="true">Activa</option>
@@ -242,6 +265,19 @@ let selectedExerciseIds = [];
 let allExercises = [];
 let rutinaEjercicios = [];
 
+// Filter by assigned user
+document.getElementById('filter-user').addEventListener('change', function() {
+  const uid = this.value;
+  document.querySelectorAll('.rutina-card').forEach(card => {
+    if (!uid) {
+      card.style.display = '';
+      return;
+    }
+    const userIds = (card.dataset.userIds || '').split(',');
+    card.style.display = userIds.includes(uid) ? '' : 'none';
+  });
+});
+
 // Body section icon mapping
 function getBodySectionIcon(section) {
   const icons = {
@@ -275,14 +311,19 @@ fetch('/admin/ejercicios')
 document.getElementById('form-create').addEventListener('submit', async (e) => {
   e.preventDefault();
   const formData = new FormData(e.target);
-  const data = Object.fromEntries(formData);
-  
+  const user_ids = formData.getAll('user_ids').map(Number);
+  const data = {
+    name: formData.get('name'),
+    description: formData.get('description'),
+    user_ids: user_ids
+  };
+
   const res = await fetch('/admin/rutinas/create', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data)
   });
-  
+
   const result = await res.json();
   if (result.success) {
     location.reload();
@@ -296,19 +337,25 @@ async function editRutina(id) {
   currentRutinaId = id;
   const res = await fetch(`/admin/rutinas/${id}`);
   const data = await res.json();
-  
+
   if (data.success) {
     const rutina = data.rutina;
     const form = document.getElementById('form-edit');
     form.querySelector('[name="rutina_id"]').value = rutina.id;
     form.querySelector('[name="name"]').value = rutina.name;
-    form.querySelector('[name="user_id"]').value = rutina.user_id;
     form.querySelector('[name="description"]').value = rutina.description || '';
     form.querySelector('[name="is_active"]').value = rutina.is_active ? 'true' : 'false';
-    
+
+    // Set assigned user checkboxes
+    const assignedUserIds = (rutina.assigned_users || []).map(au => au.user_id);
+    const checkboxes = document.querySelectorAll('#edit-user-checklist input[name="user_ids"]');
+    checkboxes.forEach(cb => {
+      cb.checked = assignedUserIds.includes(Number(cb.value));
+    });
+
     rutinaEjercicios = rutina.ejercicios || [];
     renderEjercicios();
-    
+
     document.getElementById('modal-edit').classList.add('show');
   }
 }
@@ -316,15 +363,20 @@ async function editRutina(id) {
 async function saveRutina() {
   const form = document.getElementById('form-edit');
   const formData = new FormData(form);
-  const data = Object.fromEntries(formData);
-  data.is_active = data.is_active === 'true';
-  
+  const user_ids = formData.getAll('user_ids').map(Number);
+  const data = {
+    name: formData.get('name'),
+    description: formData.get('description'),
+    is_active: formData.get('is_active') === 'true',
+    user_ids: user_ids
+  };
+
   const res = await fetch(`/admin/rutinas/${currentRutinaId}/update`, {
     method: 'PATCH',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data)
   });
-  
+
   const result = await res.json();
   if (result.success) {
     location.reload();

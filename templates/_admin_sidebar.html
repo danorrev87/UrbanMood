@@ -6,12 +6,16 @@
   </div>
   <nav>
     <ul>
+  {% if user_role == 'admin' %}
   <li><a data-label="Usuarios" href="/admin/users" class="{% if request.path.startswith('/admin/users') %}active{% endif %}"><i class="fas fa-users"></i><span>Usuarios</span></a></li>
   <li><a data-label="Clases" href="/admin/clases" class="{% if request.path.startswith('/admin/clases') %}active{% endif %}"><i class="fas fa-dumbbell"></i><span>Clases</span></a></li>
+  {% endif %}
   <li><a data-label="Rutinas" href="/admin/rutinas" class="{% if request.path.startswith('/admin/rutinas') %}active{% endif %}"><i class="fas fa-clipboard-list"></i><span>Rutinas</span></a></li>
+  {% if user_role == 'admin' %}
   <li><a data-label="Sucursales" href="/admin/sucursales" class="{% if request.path.startswith('/admin/sucursales') %}active{% endif %}"><i class="fas fa-location-dot"></i><span>Sucursales</span></a></li>
   <li><a data-label="Entrenadores" href="/admin/entrenadores" class="{% if request.path.startswith('/admin/entrenadores') %}active{% endif %}"><i class="fas fa-user-tie"></i><span>Entrenadores</span></a></li>
   <li><a data-label="Auditoría" href="/admin/audit" class="{% if request.path.startswith('/admin/audit') %}active{% endif %}"><i class="fas fa-clock-rotate-left"></i><span>Auditoría</span></a></li>
+  {% endif %}
       <li class="sep"></li>
       <li><a data-label="Logout" href="/logout" class="logout-link"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></li>
     </ul>

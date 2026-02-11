@@ -43,6 +43,26 @@ app.register_blueprint(admin_bp)
 with engine.begin() as conn:
     Base.metadata.create_all(conn)
 
+# One-time migration: move rutinas.user_id data to rutina_users table
+from sqlalchemy import inspect as sa_inspect, text
+with engine.begin() as conn:
+    inspector = sa_inspect(engine)
+    columns = [col['name'] for col in inspector.get_columns('rutinas')]
+    if 'user_id' in columns:
+        # Migrate existing assignments that don't already exist in rutina_users
+        existing = conn.execute(text("SELECT rutina_id, user_id FROM rutina_users")).fetchall()
+        existing_pairs = {(r[0], r[1]) for r in existing}
+        rows = conn.execute(text(
+            "SELECT id, user_id, created_at FROM rutinas WHERE user_id IS NOT NULL"
+        )).fetchall()
+        for row in rows:
+            if (row[0], row[1]) not in existing_pairs:
+                conn.execute(text(
+                    "INSERT INTO rutina_users (rutina_id, user_id, is_active, assigned_at) "
+                    "VALUES (:rid, :uid, 1, :at)"
+                ), {"rid": row[0], "uid": row[1], "at": row[2]})
+        logger.info("Migrated rutinas.user_id data to rutina_users table (%d rows checked)", len(rows))
+
 @app.route('/send-email', methods=['POST'])
 def send_email():
     # Get API key from environment variable
@@ -204,6 +224,8 @@ def index():
     if session.get('uid'):
         if session.get('role') == 'admin':
             return redirect('/admin/users')
+        elif session.get('role') == 'coach':
+            return redirect('/admin/rutinas')
         return redirect('/mi-rutina')
     return render_template('index.html')
 

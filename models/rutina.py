@@ -5,46 +5,52 @@ from db import Base
 
 class Rutina(Base):
     """
-    Rutina asignada a un usuario.
-    Creada por un coach, contiene múltiples ejercicios con sus configuraciones.
+    Rutina creada por un coach.
+    Puede ser asignada a múltiples usuarios a través de la tabla rutina_users.
     """
     __tablename__ = 'rutinas'
-    
+
     id = Column(Integer, primary_key=True)
-    name = Column(String(120), nullable=False)  # ej: "Rutina Fullbody Semana 1"
-    description = Column(Text, nullable=True)  # notas del coach
-    
-    # Asignación
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    name = Column(String(120), nullable=False)
+    description = Column(Text, nullable=True)
+
+    # Creador
     created_by_coach_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
-    
-    # Vigencia (opcional - para rutinas con fecha de inicio/fin)
+
+    # Vigencia (opcional)
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
-    
+
     # Estado
     is_active = Column(Boolean, default=True, nullable=False)
-    
+
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    
+
     # Relationships
-    user = relationship('User', foreign_keys=[user_id], backref='rutinas_asignadas')
     coach = relationship('User', foreign_keys=[created_by_coach_id], backref='rutinas_creadas')
     ejercicios = relationship('RutinaEjercicio', back_populates='rutina', cascade='all, delete-orphan', order_by='RutinaEjercicio.orden')
+    assigned_users = relationship('RutinaUser', back_populates='rutina', cascade='all, delete-orphan')
 
     def __repr__(self):
-        return f"<Rutina {self.name} (User: {self.user_id})>"
+        return f"<Rutina {self.name}>"
 
     def to_dict(self, include_ejercicios=False):
+        assigned = []
+        for au in self.assigned_users:
+            assigned.append({
+                'user_id': au.user_id,
+                'user_name': au.user.name if au.user else None,
+                'user_email': au.user.email if au.user else None,
+                'is_active': au.is_active,
+            })
+
         data = {
             'id': self.id,
             'name': self.name,
             'description': self.description,
-            'user_id': self.user_id,
-            'user_name': self.user.name if self.user else None,
-            'user_email': self.user.email if self.user else None,
+            'assigned_users': assigned,
             'coach_id': self.created_by_coach_id,
             'coach_name': self.coach.name if self.coach else None,
             'start_date': self.start_date.isoformat() if self.start_date else None,

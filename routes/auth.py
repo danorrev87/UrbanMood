@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, date
 from functools import wraps
 from db import SessionLocal
-from models import User, UserRole, InvitationToken, InvitationPurpose, Rutina, WorkoutLog, RutinaEjercicio
+from models import User, UserRole, InvitationToken, InvitationPurpose, Rutina, WorkoutLog, RutinaEjercicio, RutinaUser
 from config import config
 try:
     from mailersend.emails import NewEmail as Email
@@ -52,7 +52,12 @@ def login():
             return render_template('login.html', error="Credenciales inválidas"), 401
         session['uid'] = user.id
         session['role'] = user.role.value
-    redirect_url = '/admin/users' if user.role == UserRole.admin else '/mi-rutina'
+    if user.role == UserRole.admin:
+        redirect_url = '/admin/users'
+    elif user.role == UserRole.coach:
+        redirect_url = '/admin/rutinas'
+    else:
+        redirect_url = '/mi-rutina'
     if request.is_json:
         return jsonify({"success": True, "redirect": redirect_url})
     return redirect(redirect_url)
@@ -169,8 +174,9 @@ def reset_password(token):
 @require_auth
 def mi_rutina():
     with SessionLocal() as db:
-        rutinas = db.query(Rutina).filter(
-            Rutina.user_id == session['uid'],
+        rutinas = db.query(Rutina).join(RutinaUser).filter(
+            RutinaUser.user_id == session['uid'],
+            RutinaUser.is_active == True,
             Rutina.is_active == True
         ).order_by(Rutina.created_at.desc()).all()
 
@@ -201,10 +207,11 @@ def toggle_exercise():
     uid = session['uid']
 
     with SessionLocal() as db:
-        # Verify the exercise belongs to the user's routine
-        re = db.query(RutinaEjercicio).join(Rutina).filter(
+        # Verify the exercise belongs to the user's active routine
+        re = db.query(RutinaEjercicio).join(Rutina).join(RutinaUser).filter(
             RutinaEjercicio.id == re_id,
-            Rutina.user_id == uid,
+            RutinaUser.user_id == uid,
+            RutinaUser.is_active == True,
             Rutina.is_active == True
         ).first()
         if not re:
@@ -235,24 +242,29 @@ def toggle_exercise():
 @require_auth
 def workout_history():
     uid = session['uid']
+    page_size = 30
+    offset = request.args.get('offset', 0, type=int)
+
     with SessionLocal() as db:
         from sqlalchemy import func
 
-        # Get all routines for the user to count total exercises
-        rutinas = db.query(Rutina).filter(
-            Rutina.user_id == uid,
+        rutinas = db.query(Rutina).join(RutinaUser).filter(
+            RutinaUser.user_id == uid,
+            RutinaUser.is_active == True,
             Rutina.is_active == True
         ).all()
         total_exercises = sum(len(r.ejercicios) for r in rutinas)
 
-        # Get completed counts grouped by date (last 30 days)
         logs = db.query(
             WorkoutLog.date,
             func.count(WorkoutLog.id).label('completed')
         ).filter(
             WorkoutLog.user_id == uid,
             WorkoutLog.completed == True
-        ).group_by(WorkoutLog.date).order_by(WorkoutLog.date.desc()).limit(30).all()
+        ).group_by(WorkoutLog.date).order_by(WorkoutLog.date.desc()).offset(offset).limit(page_size + 1).all()
+
+        has_more = len(logs) > page_size
+        logs = logs[:page_size]
 
         history = [
             {
@@ -263,7 +275,7 @@ def workout_history():
             for row in logs
         ]
 
-        return jsonify({"history": history})
+        return jsonify({"history": history, "has_more": has_more, "next_offset": offset + page_size if has_more else None})
 
 @auth_bp.route('/mi-rutina/history/<date_str>')
 @require_auth
