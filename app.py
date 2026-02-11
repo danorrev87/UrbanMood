@@ -90,7 +90,7 @@ def send_email():
     mail_body = {}
     mail_from = {
         "name": "Contacto UrbanMood",
-        "email": "urbanmoodfitness@gmail.com", # Updated verified from email
+        "email": "noreply@urbanmood.net",
     }
     recipients = [
         {

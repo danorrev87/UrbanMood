@@ -12,6 +12,6 @@ class Config:
     RATE_LIMIT_LOGIN = os.getenv('RATE_LIMIT_LOGIN', '10 per 5 minute')
     MAILERSEND_API_KEY = os.getenv('MAILERSEND_API_KEY')
     MAIL_FROM_NAME = 'UrbanMood'
-    MAIL_FROM_EMAIL = 'urbanmoodfitness@gmail.com'
+    MAIL_FROM_EMAIL = 'noreply@urbanmood.net'
 
 config = Config()
