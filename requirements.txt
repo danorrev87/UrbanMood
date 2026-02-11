@@ -3,3 +3,10 @@ flask-cors
 mailersend
 python-dotenv
 gunicorn
+SQLAlchemy
+alembic
+passlib[bcrypt]
+bcrypt==4.1.2
+flask-login
+flask-limiter
+PyMySQL

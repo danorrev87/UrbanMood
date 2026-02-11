@@ -1,13 +1,25 @@
-from flask import Flask, request, jsonify, send_from_directory, render_template
+from flask import Flask, request, jsonify, send_from_directory, render_template, redirect
 from flask_cors import CORS
 import os
 import logging
-from mailersend import emails
+from db import Base, engine
+from config import config as app_config
+from routes.auth import auth_bp
+from routes.admin import admin_bp
+try:
+    from mailersend.emails import NewEmail as Email
+except ImportError:
+    from mailersend import Email
 from dotenv import load_dotenv
+from flask import session
 
 load_dotenv() # Load environment variables from .env file
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
+# Load core config (SECRET_KEY etc.)
+app.secret_key = app_config.SECRET_KEY  # ensure session works
+app.config.setdefault('SESSION_COOKIE_SAMESITE', 'Lax')
+app.config.setdefault('SESSION_COOKIE_HTTPONLY', True)
 
 # Logging configuration (idempotent if gunicorn already sets handlers)
 if not logging.getLogger().handlers:
@@ -22,6 +34,34 @@ allowed_origins = [
     "https://urbanmood.net"
 ]
 CORS(app, resources={r"/send-email": {"origins": allowed_origins}})
+
+# Register blueprints
+app.register_blueprint(auth_bp)
+app.register_blueprint(admin_bp)
+
+# Ensure tables exist (for early dev; later replace with Alembic migrations)
+with engine.begin() as conn:
+    Base.metadata.create_all(conn)
+
+# One-time migration: move rutinas.user_id data to rutina_users table
+from sqlalchemy import inspect as sa_inspect, text
+with engine.begin() as conn:
+    inspector = sa_inspect(engine)
+    columns = [col['name'] for col in inspector.get_columns('rutinas')]
+    if 'user_id' in columns:
+        # Migrate existing assignments that don't already exist in rutina_users
+        existing = conn.execute(text("SELECT rutina_id, user_id FROM rutina_users")).fetchall()
+        existing_pairs = {(r[0], r[1]) for r in existing}
+        rows = conn.execute(text(
+            "SELECT id, user_id, created_at FROM rutinas WHERE user_id IS NOT NULL"
+        )).fetchall()
+        for row in rows:
+            if (row[0], row[1]) not in existing_pairs:
+                conn.execute(text(
+                    "INSERT INTO rutina_users (rutina_id, user_id, is_active, assigned_at) "
+                    "VALUES (:rid, :uid, 1, :at)"
+                ), {"rid": row[0], "uid": row[1], "at": row[2]})
+        logger.info("Migrated rutinas.user_id data to rutina_users table (%d rows checked)", len(rows))
 
 @app.route('/send-email', methods=['POST'])
 def send_email():
@@ -44,7 +84,7 @@ def send_email():
         return jsonify({"success": False, "message": "Missing required form fields."}), 400
 
     # Initialize MailerSend
-    mailer = emails.NewEmail(mailer_api_key)
+    mailer = Email(mailer_api_key)
 
     # Define email parameters
     mail_body = {}
@@ -181,7 +221,20 @@ def health():
 
 @app.route('/')
 def index():
+    if session.get('uid'):
+        if session.get('role') == 'admin':
+            return redirect('/admin/users')
+        elif session.get('role') == 'coach':
+            return redirect('/admin/rutinas')
+        return redirect('/mi-rutina')
     return render_template('index.html')
+
+@app.context_processor
+def inject_session_flags():
+    return {
+        'logged_in': bool(session.get('uid')),
+        'user_role': session.get('role')
+    }
 
 @app.route('/<path:filename>')
 def static_files(filename):

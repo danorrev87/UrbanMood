@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Usuario - {{ user.email }}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* Critical CSS to prevent layout shift - loaded before render */
+    body { background:#0d0d0d;color:#e5e7e8;font-family:'Poppins',sans-serif;margin:0;padding-left:236px;transition:none; }
+    /* Page transition animation */
+    .admin-content { opacity:0; animation:fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    /* Sidebar critical styles */
+    .admin-sidebar { position:fixed; top:0; left:0; height:100vh; width:236px; background:#101010; border-right:1px solid #1f1f1f; padding:18px 14px; font-family:'Poppins',sans-serif; z-index:1200; display:flex; flex-direction:column; gap:14px; overflow:hidden; box-sizing:border-box; }
+    .admin-sidebar .admin-brand { margin:0 0 10px; background:#3d4348; padding:6px 6px 4px; border-radius:4px; }
+    .admin-sidebar nav ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+    .admin-sidebar nav a { display:flex; align-items:center; gap:10px; padding:8px 10px; color:#c9ced2; font-size:.75rem; font-weight:600; text-decoration:none; border-radius:8px; transition:background .15s ease, color .15s ease; }
+    .admin-sidebar nav a:hover { background:#1d1d1d; color:#e8eaec; }
+    .admin-sidebar nav a.active { background:#1f1f1f; color:#c2d03a; border:1px solid #2d2d2d; }
+    .admin-sidebar nav a i { width:16px; text-align:center; font-size:.9rem; }
+    .admin-sidebar nav li.sep { margin:6px 0; border-top:1px solid #242424; }
+    main { padding:46px 52px 80px; }
+    a.back { color:#c2d03a; text-decoration:none; font-size:.75rem; font-weight:600; }
+    a.back:hover { text-decoration:underline; }
+    h1 { margin:8px 0 24px; font-size:1.6rem; color:#c2d03a; }
+    .card { background:#121212; border:1px solid #262626; border-radius:16px; padding:28px 30px; max-width:640px; }
+    .grid { display:grid; grid-template-columns:160px 1fr; gap:14px 22px; }
+    label { font-size:.65rem; letter-spacing:.08em; text-transform:uppercase; color:#9da3a8; font-weight:600; align-self:center; }
+    input, select, textarea { background:#181818; border:1px solid #303030; color:#eee; padding:10px 12px; border-radius:10px; font-size:.85rem; }
+    input:focus, select:focus, textarea:focus { outline:none; border-color:#b6c628; box-shadow:0 0 0 2px rgba(182,198,40,.25); }
+    .row-span { grid-column:1 / -1; }
+    .actions { margin-top:30px; display:flex; gap:14px; }
+    button { background:#b6c628; color:#101410; font-weight:600; border:none; padding:12px 18px; border-radius:12px; cursor:pointer; font-size:.85rem; letter-spacing:.5px; }
+    button.secondary { background:#222; color:#ddd; }
+    button.danger { background:#7a2727; color:#ffb0b0; }
+    button:hover { filter:brightness(1.08); }
+    #msg { font-size:.7rem; margin-top:12px; }
+    .meta { margin:30px 0 0; font-size:.65rem; color:#7d8489; line-height:1.4; }
+    .badge { display:inline-block; background:#1f1f1f; border:1px solid #303030; padding:4px 10px; border-radius:30px; font-size:.6rem; letter-spacing:.05em; text-transform:uppercase; }
+    .badge.active { color:#7edc7e; border-color:#2d5630; }
+    .badge.inactive { color:#ff8d8d; border-color:#6b2c2c; }
+  </style>
+</head>
+<body>
+  {% include '_admin_sidebar.html' %}
+  <main class="admin-content">
+  <h1>{{ user.name }} <small style="font-size:.55em;color:#9aa0a5;font-weight:400;">{{ user.email }}</small></h1>
+  <div class="card">
+    <form id="detail-form" action="javascript:void(0);">
+      <div class="grid">
+        <label>Nombre</label>
+        <input name="name" value="{{ user.name }}" required>
+
+        <label>Email</label>
+        <input value="{{ user.email }}" disabled>
+
+        <label>Teléfono</label>
+        <input name="phone" value="{{ user.phone or '' }}" placeholder="Opcional">
+
+        <label>Fecha Nacimiento</label>
+        <input type="date" name="birth_date" value="{{ user.birth_date.strftime('%Y-%m-%d') if user.birth_date else '' }}">
+
+        <label>Edad</label>
+        <input value="{{ user.age if user.age is not none else '' }}" disabled placeholder="Calculada" title="Calculada automáticamente" />
+
+        <label>Dirección</label>
+        <input name="address" value="{{ user.address or '' }}" placeholder="Calle, Ciudad, ...">
+
+        <label>Género</label>
+        <select name="gender">
+          {% set genders = [
+            '','Masculino','Femenino','No binario','Transgénero','Transfemenino','Transmasculino','Intersexual','Queer','Agénero','Bigénero','Género fluido','Dos espíritus','Prefiero no decir','Otro'
+          ] %}
+          {% for g in genders %}
+            <option value="{{ g }}" {% if user.gender==g %}selected{% endif %}>{{ g if g else '—' }}</option>
+          {% endfor %}
+        </select>
+
+        <label>Sucursal</label>
+        <select name="preferred_location_id">
+          <option value="">— Sin sucursal —</option>
+          {% for s in sucursales %}
+            <option value="{{ s.id }}" {% if user.preferred_location_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label>Rol</label>
+        <select name="role">
+          <option value="user" {% if user.role.value=='user' %}selected{% endif %}>Usuario</option>
+          <option value="coach" {% if user.role.value=='coach' %}selected{% endif %}>Coach</option>
+          <option value="admin" {% if user.role.value=='admin' %}selected{% endif %}>Admin</option>
+        </select>
+
+        <label>Estado</label>
+        <select name="is_active">
+          <option value="1" {% if user.is_active %}selected{% endif %}>Activo</option>
+          <option value="0" {% if not user.is_active %}selected{% endif %}>Pendiente</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button type="submit">Guardar</button>
+        <button type="button" id="delete-btn" class="danger">Eliminar</button>
+      </div>
+      <p id="msg"></p>
+    </form>
+    <div class="meta">
+      <div>ID: {{ user.id }}</div>
+      <div>Creado: {{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else '' }}</div>
+      <div>Última actualización: {{ user.updated_at.strftime('%Y-%m-%d %H:%M') if user.updated_at else '' }}</div>
+      <div>Estado actual: {% if user.is_active %}<span class="badge active">Activo</span>{% else %}<span class="badge inactive">Pendiente</span>{% endif %}</div>
+    </div>
+  </div>
+
+  <!-- Rutina Assignment Section -->
+  <div class="card" style="margin-top:24px;">
+    <h2 style="margin:0 0 16px;font-size:1.1rem;color:#c2d03a;"><i class="fas fa-dumbbell" style="margin-right:6px;"></i> Rutina Asignada</h2>
+    <div class="grid" style="grid-template-columns:160px 1fr;">
+      <label>Rutina Activa</label>
+      <select id="rutina-select" style="background:#181818;border:1px solid #303030;color:#eee;padding:10px 12px;border-radius:10px;font-size:.85rem;">
+        <option value="">— Sin rutina —</option>
+        {% for r in rutinas %}
+        <option value="{{ r.id }}" {% if active_assignment and active_assignment.rutina_id == r.id %}selected{% endif %}>
+          {{ r.name }} ({{ r.ejercicios|length }} ejercicios)
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if active_assignment %}
+    <div style="margin-top:12px;font-size:.7rem;color:#8a9096;">
+      <i class="fas fa-info-circle"></i>
+      Rutina actual: <strong style="color:#c2d03a;">{{ active_assignment.rutina.name }}</strong>
+      — {{ active_assignment.rutina.ejercicios|length }} ejercicios
+      — Asignada: {{ active_assignment.assigned_at.strftime('%Y-%m-%d %H:%M') if active_assignment.assigned_at else '' }}
+    </div>
+    {% endif %}
+    <div style="margin-top:14px;">
+      <button type="button" id="save-rutina-btn">Guardar Rutina</button>
+    </div>
+    <p id="rutina-msg" style="font-size:.7rem;margin-top:8px;"></p>
+  </div>
+<script>
+  const form = document.getElementById('detail-form');
+  const msg = document.getElementById('msg');
+  const deleteBtn = document.getElementById('delete-btn');
+  function setMsg(t, ok){ msg.textContent=t; msg.style.color = ok ? '#7edc7e' : '#ff7b7b'; }
+  form.addEventListener('submit', async ()=>{
+    setMsg('', true);
+    const data = Object.fromEntries(new FormData(form).entries());
+    data.is_active = data.is_active === '1';
+    try {
+      const res = await fetch('/admin/users/{{ user.id }}/update', { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+      const j = await res.json();
+      if(!j.success){ setMsg(j.message||'Error', false); return; }
+      setMsg('Guardado', true);
+    } catch(e){ setMsg('Error de red', false);}  
+  });
+  deleteBtn.addEventListener('click', async ()=>{
+    if(!confirm('¿Eliminar usuario?')) return;
+    try {
+      const res = await fetch('/admin/users/{{ user.id }}', { method:'DELETE' });
+      const j = await res.json();
+      if(!j.success){ setMsg(j.message||'Error', false); return; }
+      window.location.href='/admin/users';
+    } catch(e){ setMsg('Error de red', false);}
+  });
+
+  // Rutina assignment
+  const rutinaMsg = document.getElementById('rutina-msg');
+  function setRutinaMsg(t, ok){ rutinaMsg.textContent=t; rutinaMsg.style.color = ok ? '#7edc7e' : '#ff7b7b'; }
+  document.getElementById('save-rutina-btn').addEventListener('click', async ()=>{
+    setRutinaMsg('', true);
+    const rutinaId = document.getElementById('rutina-select').value;
+    try {
+      const res = await fetch('/admin/users/{{ user.id }}/assign-rutina', {
+        method:'PATCH',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ rutina_id: rutinaId ? Number(rutinaId) : null })
+      });
+      const j = await res.json();
+      if(!j.success){ setRutinaMsg(j.message||'Error', false); return; }
+      setRutinaMsg(j.rutina_name ? 'Rutina asignada: ' + j.rutina_name : 'Rutina removida', true);
+      setTimeout(()=> location.reload(), 800);
+    } catch(e){ setRutinaMsg('Error de red', false); }
+  });
+</script>
+  </main>
+</body>
+</html>

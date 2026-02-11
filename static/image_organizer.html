@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise Image Organizer - UrbanMood</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .instructions {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .muscle-group {
+            margin-bottom: 30px;
+        }
+        .muscle-group-header {
+            background: #e74c3c;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .muscle-group-header .count {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+        .drop-zone {
+            background: white;
+            border: 3px dashed #ddd;
+            border-radius: 0 0 8px 8px;
+            padding: 40px 20px;
+            text-align: center;
+            color: #999;
+            transition: all 0.3s ease;
+            min-height: 100px;
+        }
+        .drop-zone.drag-over {
+            border-color: #e74c3c;
+            background: #fff5f5;
+            color: #e74c3c;
+        }
+        .drop-zone.has-images {
+            border-style: solid;
+            border-color: #27ae60;
+            background: #f0fff4;
+            padding: 20px;
+        }
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .exercise-card {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: move;
+            position: relative;
+        }
+        .exercise-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .exercise-card .image-preview {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .exercise-card .filename {
+            font-size: 11px;
+            color: #666;
+            font-family: monospace;
+            word-break: break-all;
+            margin-bottom: 5px;
+        }
+        .exercise-card .remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .exercise-card:hover .remove-btn {
+            opacity: 1;
+        }
+        .exercise-card .remove-btn:hover {
+            background: #c0392b;
+        }
+        button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #c0392b;
+        }
+        .output {
+            background: #2c3e50;
+            color: #2ecc71;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            display: none;
+            margin-top: 20px;
+        }
+        .output.show {
+            display: block;
+        }
+        .actions {
+            position: sticky;
+            top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 30px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏋️ Exercise Image Organizer</h1>
+    
+    <div class="instructions">
+        <h2>Instructions:</h2>
+        <ol>
+            <li><strong>Drag & Drop Images:</strong> Drag your exercise images onto the drop zones below</li>
+            <li>Images will be automatically organized by muscle group</li>
+            <li>Reorder cards within each section by dragging them</li>
+            <li>Click "Generate Rename Commands" when all images are added</li>
+            <li>Run the generated commands to rename files to ejercicio-1, ejercicio-2, etc.</li>
+        </ol>
+        <p><strong>Total Images Needed:</strong> <span id="image-count">0</span> / 36</p>
+    </div>
+
+    <div class="actions">
+        <button onclick="generateCommands()">📋 Generate Rename Commands</button>
+        <button onclick="clearAll()">🗑️ Clear All</button>
+    </div>
+
+    <div id="muscleGroups"></div>
+
+    <div class="output" id="output"></div>
+
+    <script>
+        const muscleGroups = [
+            { name: 'PECHO (Chest)', key: 'pecho' },
+            { name: 'ESPALDA (Back)', key: 'espalda' },
+            { name: 'HOMBROS (Shoulders)', key: 'hombros' },
+            { name: 'BÍCEPS', key: 'biceps' },
+            { name: 'TRÍCEPS', key: 'triceps' },
+            { name: 'PIERNAS (Legs)', key: 'piernas' },
+            { name: 'ABDOMEN (Core)', key: 'abdomen' },
+            { name: 'GLÚTEOS (Glutes)', key: 'gluteos' },
+            { name: 'CARDIO', key: 'cardio' },
+            { name: 'FUNCIONAL (Functional)', key: 'funcional' }
+        ];
+        
+        // Store images by group
+        const imagesByGroup = {};
+        muscleGroups.forEach(g => imagesByGroup[g.key] = []);
+
+        function renderExercises() {
+            const grid = document.getElementById('exerciseGrid');
+            let html = '';
+            
+            for (const [groupName, groupExercises] of Object.entries(exercisesByGroup)) {
+                html += `<div style="grid-column: 1/-1; background: #e74c3c; color: white; padding: 15px; border-radius: 8px; margin-top: 20px; font-weight: bold; font-size: 18px;">
+                    💪 ${groupName}
+                </div>`;
+                
+                html += groupExercises.map(ex => `
+                    <div class="exercise-card" data-exercise-id="${ex.id}">
+                        <h3>${ex.name}</h3>
+                        <div class="id">ID: ${ex.id}</div>
+                        <div class="target-name">Will rename to: ejercicio-${ex.id}.[ext]</div>
+                        <input 
+                            type="text" 
+                            id="input-${ex.id}" 
+                            placeholder="Drag image here or type filename"
+                            onchange="previewImage(${ex.id})"
+                        >
+                        <img id="preview-${ex.id}" class="image-preview" alt="Preview">
+                    </div>
+                `).join('');
+            }
+            
+            grid.innerHTML = html;
+            
+            // Setup drag and drop for all cards
+            setupDragAndDrop();
+        }
+        
+        function setupDragAndDrop() {
+            const cards = document.querySelectorAll('.exercise-card');
+            
+            cards.forEach(card => {
+                const exerciseId = card.getAttribute('data-exercise-id');
+                
+                card.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    card.classList.add('drag-over');
+                });
+                
+                card.addEventListener('dragleave', () => {
+                    card.classList.remove('drag-over');
+                });
+                
+                card.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    card.classList.remove('drag-over');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        const file = files[0];
+                        
+                        // Check if it's an image
+                        if (file.type.startsWith('image/')) {
+                            handleImageDrop(exerciseId, file);
+                        } else {
+                            alert('Please drop an image file (JPG, PNG, etc.)');
+                        }
+                    }
+                });
+            });
+        }
+        
+        function handleImageDrop(exerciseId, file) {
+            const input = document.getElementById(`input-${exerciseId}`);
+            const preview = document.getElementById(`preview-${exerciseId}`);
+            const card = document.querySelector(`[data-exercise-id="${exerciseId}"]`);
+            
+            // Set the filename in the input
+            input.value = file.name;
+            
+            // Create a preview URL
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.classList.add('show');
+                card.classList.add('has-image');
+                
+                // Save to localStorage
+                localStorage.setItem(`exercise-${exerciseId}`, file.name);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function previewImage(id) {
+            const input = document.getElementById(`input-${id}`);
+            const preview = document.getElementById(`preview-${id}`);
+            const card = document.querySelector(`[data-exercise-id="${id}"]`);
+            const filename = input.value.trim();
+            
+            if (filename) {
+                preview.src = `/static/images/ejercicios/${filename}`;
+                preview.onload = () => {
+                    preview.classList.add('show');
+                    card.classList.add('has-image');
+                };
+                preview.onerror = () => {
+                    preview.classList.remove('show');
+                    card.classList.remove('has-image');
+                    alert(`Image not found: ${filename}`);
+                };
+                // Save to localStorage
+                localStorage.setItem(`exercise-${id}`, filename);
+            } else {
+                preview.classList.remove('show');
+                card.classList.remove('has-image');
+                localStorage.removeItem(`exercise-${id}`);
+            }
+        }
+
+        function generateCommands() {
+            const commands = [];
+            const fileMapping = {};
+            
+            exercises.forEach(ex => {
+                const input = document.getElementById(`input-${ex.id}`);
+                const currentName = input.value.trim();
+                
+                if (currentName) {
+                    // Detect file extension from current file
+                    const ext = currentName.substring(currentName.lastIndexOf('.')).toLowerCase();
+                    const newName = `ejercicio-${ex.id}${ext}`;
+                    
+                    if (currentName !== newName) {
+                        commands.push(`mv "${currentName}" "${newName}"`);
+                    }
+                    fileMapping[ex.id] = newName;
+                }
+            });
+
+            if (commands.length === 0) {
+                alert('No images to rename! Enter current filenames first.');
+                return;
+            }
+
+            const output = document.getElementById('output');
+            output.innerHTML = `# Navigate to the images folder
+cd /Users/daniloorrego/Documents/Danilo/UrbanMood/static/images/ejercicios
+
+# Rename commands (${commands.length} files)
+${commands.join('\n')}
+
+# After renaming, run this Python script to update the database:
+# save this as update_exercise_images.py
+
+cd /Users/daniloorrego/Documents/Danilo/UrbanMood
+source .venv/bin/activate
+
+python -c "
+from db import SessionLocal
+from models import Ejercicio
+
+db = SessionLocal()
+
+# Update image URLs
+${Object.entries(fileMapping).map(([id, filename]) => {
+    return `db.query(Ejercicio).filter(Ejercicio.id==${id}).update({'image_url': '/static/images/ejercicios/${filename}'})`;
+}).join('\n')}
+
+db.commit()
+print('✅ Updated ${Object.keys(fileMapping).length} exercise image URLs')
+db.close()
+"
+`;
+            output.classList.add('show');
+            output.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function testImages() {
+            let tested = 0;
+            let found = 0;
+            
+            exercises.forEach(ex => {
+                const input = document.getElementById(`input-${ex.id}`);
+                if (input.value.trim()) {
+                    tested++;
+                    previewImage(ex.id);
+                    
+                    const preview = document.getElementById(`preview-${ex.id}`);
+                    setTimeout(() => {
+                        if (preview.complete && preview.naturalHeight !== 0) {
+                            found++;
+                        }
+                    }, 100);
+                }
+            });
+            
+            setTimeout(() => {
+                alert(`Tested ${tested} images, ${found} loaded successfully`);
+            }, 500);
+        }
+
+        function clearAll() {
+            if (confirm('Clear all entered filenames?')) {
+                exercises.forEach(ex => {
+                    document.getElementById(`input-${ex.id}`).value = '';
+                    document.getElementById(`preview-${ex.id}`).classList.remove('show');
+                    localStorage.removeItem(`exercise-${ex.id}`);
+                });
+                document.getElementById('output').classList.remove('show');
+            }
+        }
+
+        // Load saved values from localStorage
+        function loadSavedValues() {
+            exercises.forEach(ex => {
+                const saved = localStorage.getItem(`exercise-${ex.id}`);
+                if (saved) {
+                    document.getElementById(`input-${ex.id}`).value = saved;
+                    previewImage(ex.id);
+                }
+            });
+        }
+
+        // Initialize
+        renderExercises();
+        setTimeout(loadSavedValues, 100);
+    </script>
+</body>
+</html>

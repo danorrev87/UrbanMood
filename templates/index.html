@@ -128,6 +128,9 @@
             <li><a href="#comunidad">Comunidad</a></li>
             <li><a href="#faq">Preguntas frecuentes</a></li>
             <li><a href="#contact">Contacto</a></li>
+            {% if not logged_in %}
+            <li><a href="/login" style="color:#a8b720;font-weight:600;">Login</a></li>
+            {% endif %}
         </ul>
     </nav>
     <button class="hamburger-icon">
@@ -146,6 +149,9 @@
             <li><a href="#comunidad">Comunidad</a></li>
             <li><a href="#faq">Preguntas frecuentes</a></li>
             <li><a href="#contact">Contacto</a></li>
+            {% if not logged_in %}
+            <li><a href="/login" style="color:#a8b720;font-weight:600;">Login</a></li>
+            {% endif %}
         </ul>
     </nav>
 </div>
@@ -367,6 +373,17 @@
 <a href="https://wa.me/59899188869?text=Vengo%20de%20la%20web%20de%20UrbanMood%20y%20quisiera%20asistencia%20😊" class="floating-whatsapp" target="_blank" aria-label="WhatsApp">
     <i class="fab fa-whatsapp"></i>
 </a>
+
+{% if logged_in and user_role in ['admin','coach'] %}
+<a href="/admin/users" class="floating-admin" aria-label="Panel Usuarios" title="Usuarios">
+    <i class="fas fa-users-cog"></i>
+</a>
+<style>
+.floating-admin { position:fixed; bottom:90px; right:18px; background:#1f1f1f; color:#a8b720; border:2px solid #2d2d2d; width:52px; height:52px; display:flex; align-items:center; justify-content:center; border-radius:16px; font-size:1.2rem; box-shadow:0 4px 14px -2px rgba(0,0,0,.55); text-decoration:none; transition:background .2s, transform .2s; }
+.floating-admin:hover { background:#262626; transform:translateY(-2px); }
+@media (max-width:640px){ .floating-admin { bottom:86px; right:14px; width:48px; height:48px; font-size:1.05rem; } }
+</style>
+{% endif %}
 
 <script src="/static/script.js?v=1.1"></script>
 </body>

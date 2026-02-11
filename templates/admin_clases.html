@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>UrbanMood - Clases</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* Critical CSS to prevent layout shift - loaded before render */
+    body { background:#0d0d0d;color:#e5e7e8;font-family:'Poppins',sans-serif;margin:0;padding-left:236px;transition:none; }
+    /* Page transition animation */
+    .admin-content { opacity:0; animation:fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    /* Sidebar critical styles */
+    .admin-sidebar { position:fixed; top:0; left:0; height:100vh; width:236px; background:#101010; border-right:1px solid #1f1f1f; padding:18px 14px; font-family:'Poppins',sans-serif; z-index:1200; display:flex; flex-direction:column; gap:14px; overflow:hidden; box-sizing:border-box; }
+    .admin-sidebar .admin-brand { margin:0 0 10px; background:#3d4348; padding:6px 6px 4px; border-radius:4px; }
+    .admin-sidebar nav ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+    .admin-sidebar nav a { display:flex; align-items:center; gap:10px; padding:8px 10px; color:#c9ced2; font-size:.75rem; font-weight:600; text-decoration:none; border-radius:8px; transition:background .15s ease, color .15s ease; }
+    .admin-sidebar nav a:hover { background:#1d1d1d; color:#e8eaec; }
+    .admin-sidebar nav a.active { background:#1f1f1f; color:#c2d03a; border:1px solid #2d2d2d; }
+    .admin-sidebar nav a i { width:16px; text-align:center; font-size:.9rem; }
+    .admin-sidebar nav li.sep { margin:6px 0; border-top:1px solid #242424; }
+    main { padding:46px 52px 80px; }
+    h1 { margin:0 0 26px;font-size:2rem;color:#c2d03a; }
+    .clases-toolbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin-bottom:24px; }
+    .create-btn { background:#c2d03a; color:#111; border:none; padding:10px 18px; font-size:.75rem; font-weight:600; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+    .create-btn:hover { filter:brightness(1.05); }
+    .grid { display:grid; gap:18px; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); }
+    .clase-card { position:relative; background:#121212; border:1px solid #252525; padding:16px 16px 54px; border-radius:16px; display:flex; flex-direction:column; gap:10px; min-height:180px; }
+    .clase-card.inactive { opacity:.55; }
+    .clase-card h3 { margin:0; font-size:1.05rem; color:#e8eae9; line-height:1.2; }
+    .clase-card p { margin:0; font-size:.65rem; line-height:1.35; color:#b4b9bd; white-space:pre-line; }
+    .meta { font-size:.55rem; letter-spacing:.5px; text-transform:uppercase; color:#7c8286; display:flex; gap:10px; }
+    .status-pill { font-size:.55rem; padding:2px 8px; border-radius:999px; background:#1f3c1f; color:#85e085; font-weight:600; letter-spacing:.5px; }
+    .clase-card.inactive .status-pill { background:#402020; color:#ff9595; }
+    .actions { position:absolute; left:12px; right:12px; bottom:10px; display:flex; gap:6px; }
+    .actions button { flex:1; background:#1c1c1c; border:1px solid #303030; color:#ddd; font-size:.6rem; padding:6px 6px; border-radius:8px; cursor:pointer; font-weight:600; }
+    .actions button:hover { background:#262626; }
+    .actions button.danger { color:#ff7b7b; border-color:#553131; }
+    .actions button.danger:hover { background:#331818; }
+    .empty { text-align:center; opacity:.6; padding:70px 10px; border:2px dashed #222; border-radius:18px; font-size:.8rem; }
+    /* Modal */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(3px); display:none; align-items:flex-start; justify-content:center; padding-top:90px; z-index:1500; }
+    .modal-backdrop.show { display:flex; }
+    .modal { width:420px; background:#141414; border:1px solid #2a2a2a; border-radius:18px; padding:28px 26px 30px; box-shadow:0 30px 70px -24px rgba(0,0,0,.7); }
+    .modal h2 { margin:0 0 18px; font-size:1.2rem; color:#c2d03a; }
+    .modal form label { display:block; font-size:.6rem; font-weight:600; letter-spacing:.5px; color:#9ca1a5; margin-bottom:12px; }
+    .modal input, .modal textarea { width:100%; background:#1b1b1b; border:1px solid #2c2c2c; color:#f5f6f7; padding:10px 12px; font-size:.75rem; border-radius:10px; font-family:inherit; }
+    .modal textarea { resize:vertical; min-height:90px; }
+    .modal .row { display:flex; gap:14px; }
+    .modal .actions-bar { margin-top:16px; display:flex; justify-content:flex-end; gap:10px; }
+    .btn-secondary { background:#222; color:#dde1e4; border:1px solid #303030; padding:10px 18px; font-size:.65rem; border-radius:10px; cursor:pointer; font-weight:600; }
+    .btn-secondary:hover { background:#2b2b2b; }
+    .btn-primary { background:#c2d03a; color:#111; border:none; padding:10px 22px; font-size:.7rem; border-radius:10px; font-weight:600; cursor:pointer; }
+    .btn-primary:hover { filter:brightness(1.05); }
+    .msg { font-size:.65rem; margin-top:6px; min-height:14px; }
+    .inline-edit { border:1px solid #303030; background:#1b1b1b; color:#eee; padding:6px 8px; width:100%; border-radius:8px; font-size:.65rem; }
+    .edit-area { width:100%; background:#1b1b1b; border:1px solid #303030; color:#eee; padding:6px 8px; border-radius:8px; font-size:.65rem; resize:vertical; }
+    .fade-flash { animation:flashBg 1.2s ease; }
+    @keyframes flashBg { 0%{background:#243014;} 100%{background:transparent;} }
+  </style>
+</head>
+<body>
+{% include '_admin_sidebar.html' %}
+<main class="admin-content">
+  <div class="clases-toolbar">
+    <h1>Clases</h1>
+    <button class="create-btn" id="open-create"><i class="fas fa-plus"></i> Nueva clase</button>
+  </div>
+  <div id="clases-grid" class="grid">
+    {% if not clases %}
+      <div class="empty" style="grid-column:1/-1;">Aún no hay clases creadas</div>
+    {% else %}
+      {% for c in clases %}
+        <div class="clase-card{% if not c.is_active %} inactive{% endif %}" data-id="{{ c.id }}">
+          <div class="meta"><span>ID #{{ c.id }}</span><span class="status-pill">{{ 'ACTIVA' if c.is_active else 'INACTIVA' }}</span></div>
+          <h3 class="title">{{ c.name }}</h3>
+          <p class="desc">{{ c.description or '' }}</p>
+          <div class="actions">
+            <button class="edit">Editar</button>
+            <button class="toggle">{{ 'Desactivar' if c.is_active else 'Activar' }}</button>
+            <button class="danger delete">Eliminar</button>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="create-modal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="create-title">
+    <h2 id="create-title">Nueva Clase</h2>
+    <form id="create-form" autocomplete="off">
+      <label>Nombre
+        <input name="name" maxlength="120" required placeholder="Ej: Funcional, Yoga...">
+      </label>
+      <label>Descripción
+        <textarea name="description" placeholder="Detalles opcionales"></textarea>
+      </label>
+      <div class="actions-bar">
+        <button type="button" class="btn-secondary" id="cancel-create">Cancelar</button>
+        <button type="submit" class="btn-primary">Crear</button>
+      </div>
+      <div class="msg" id="form-msg"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+  const modal = document.getElementById('create-modal');
+  const openBtn = document.getElementById('open-create');
+  const cancelBtn = document.getElementById('cancel-create');
+  const form = document.getElementById('create-form');
+  const msg = document.getElementById('form-msg');
+  const grid = document.getElementById('clases-grid');
+
+  function openModal(){ modal.classList.add('show'); modal.setAttribute('aria-hidden','false'); form.name.focus(); }
+  function closeModal(){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); form.reset(); msg.textContent=''; }
+  openBtn.addEventListener('click', openModal);
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && modal.classList.contains('show')) closeModal(); });
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    msg.textContent='';
+    const data = Object.fromEntries(new FormData(form).entries());
+    try {
+      const res = await fetch('/admin/clases', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+      const j = await res.json();
+      if(!j.success){ msg.textContent=j.message||'Error'; msg.style.color='#ff8181'; return; }
+      // Insert new card
+      const div = document.createElement('div');
+      div.className='clase-card fade-flash';
+      div.dataset.id=j.id;
+      div.innerHTML = `<div class="meta"><span>ID #${j.id}</span><span class="status-pill">ACTIVA</span></div><h3 class="title">${data.name}</h3><p class="desc">${(data.description||'')}</p><div class="actions"><button class="edit">Editar</button><button class="toggle">Desactivar</button><button class="danger delete">Eliminar</button></div>`;
+      if(grid.querySelector('.empty')) grid.querySelector('.empty').remove();
+      grid.prepend(div);
+      closeModal();
+    } catch(err){ msg.textContent='Error de red'; msg.style.color='#ff8181'; }
+  });
+
+  function cardFrom(el){ return el.closest('.clase-card'); }
+
+  grid.addEventListener('click', async e=>{
+    const edit = e.target.closest('.edit');
+    const toggle = e.target.closest('.toggle');
+    const del = e.target.closest('.delete');
+    if(edit){
+      const card = cardFrom(edit);
+      if(card.dataset.editing) return; card.dataset.editing='1';
+      const titleEl = card.querySelector('h3.title');
+      const descEl = card.querySelector('p.desc');
+      const orig = {title:titleEl.textContent.trim(), desc:descEl.textContent.trim()};
+      titleEl.innerHTML = `<input class='inline-edit' value='${orig.title.replace(/'/g,"&#39;")}' maxlength='120'>`;
+      descEl.innerHTML = `<textarea class='edit-area' rows='4'>${orig.desc.replace(/'/g,"&#39;")}</textarea>`;
+      edit.textContent='Guardar';
+      const cancel = document.createElement('button'); cancel.className='btn-secondary'; cancel.textContent='Cancelar'; edit.after(cancel);
+      cancel.addEventListener('click', ()=>{ card.dataset.editing=''; titleEl.textContent=orig.title; descEl.textContent=orig.desc; edit.textContent='Editar'; cancel.remove(); });
+      edit.addEventListener('click', async function onSave(){
+        if(edit.textContent!=='Guardar') return;
+        const newTitle = titleEl.querySelector('input').value.trim();
+        const newDesc = descEl.querySelector('textarea').value.trim();
+        const res = await fetch(`/admin/clases/${card.dataset.id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:newTitle, description:newDesc})});
+        const j = await res.json();
+        if(!j.success){ alert(j.message||'Error'); return; }
+        titleEl.textContent=newTitle; descEl.textContent=newDesc; card.dataset.editing=''; edit.textContent='Editar'; cancel.remove(); edit.removeEventListener('click', onSave); card.classList.add('fade-flash'); setTimeout(()=>card.classList.remove('fade-flash'),1200);
+      }, {once:false});
+    } else if(toggle){
+      const card = cardFrom(toggle);
+      const pill = card.querySelector('.status-pill');
+      const inactive = !pill || pill.textContent.trim()!=='INACTIVA' ? false : true; // current state
+      const makeActive = pill.textContent.trim()==='INACTIVA';
+      const res = await fetch(`/admin/clases/${card.dataset.id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({is_active:makeActive})});
+      const j = await res.json();
+      if(!j.success){ alert(j.message||'Error'); return; }
+      if(makeActive){ pill.textContent='ACTIVA'; card.classList.remove('inactive'); toggle.textContent='Desactivar'; }
+      else { pill.textContent='INACTIVA'; card.classList.add('inactive'); toggle.textContent='Activar'; }
+    } else if(del){
+      const card = cardFrom(del);
+      if(!confirm('Eliminar esta clase?')) return;
+      const res = await fetch(`/admin/clases/${card.dataset.id}`, {method:'DELETE'});
+      const j = await res.json();
+      if(!j.success){ alert(j.message||'Error'); return; }
+      card.remove();
+      if(!grid.querySelector('.clase-card')){
+        const empty = document.createElement('div'); empty.className='empty'; empty.style.gridColumn='1/-1'; empty.textContent='Aún no hay clases creadas'; grid.append(empty);
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

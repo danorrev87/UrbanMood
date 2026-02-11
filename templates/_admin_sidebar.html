@@ -1,0 +1,53 @@
+{% if logged_in %}
+<aside id="admin-sidebar" class="admin-sidebar">
+  <div class="admin-brand">
+    <a href="/" class="logo-large"><img src="/static/images/urbanmood_banner.png" alt="UrbanMood" class="admin-logo"></a>
+    <a href="/" class="logo-small"><img src="/static/icon.png" alt="UM" class="admin-logo-small"></a>
+  </div>
+  <nav>
+    <ul>
+  {% if user_role == 'admin' %}
+  <li><a data-label="Usuarios" href="/admin/users" class="{% if request.path.startswith('/admin/users') %}active{% endif %}"><i class="fas fa-users"></i><span>Usuarios</span></a></li>
+  <li><a data-label="Clases" href="/admin/clases" class="{% if request.path.startswith('/admin/clases') %}active{% endif %}"><i class="fas fa-dumbbell"></i><span>Clases</span></a></li>
+  {% endif %}
+  <li><a data-label="Rutinas" href="/admin/rutinas" class="{% if request.path.startswith('/admin/rutinas') %}active{% endif %}"><i class="fas fa-clipboard-list"></i><span>Rutinas</span></a></li>
+  {% if user_role == 'admin' %}
+  <li><a data-label="Sucursales" href="/admin/sucursales" class="{% if request.path.startswith('/admin/sucursales') %}active{% endif %}"><i class="fas fa-location-dot"></i><span>Sucursales</span></a></li>
+  <li><a data-label="Entrenadores" href="/admin/entrenadores" class="{% if request.path.startswith('/admin/entrenadores') %}active{% endif %}"><i class="fas fa-user-tie"></i><span>Entrenadores</span></a></li>
+  <li><a data-label="Auditoría" href="/admin/audit" class="{% if request.path.startswith('/admin/audit') %}active{% endif %}"><i class="fas fa-clock-rotate-left"></i><span>Auditoría</span></a></li>
+  {% endif %}
+      <li class="sep"></li>
+      <li><a data-label="Logout" href="/logout" class="logout-link"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></li>
+    </ul>
+  </nav>
+</aside>
+<style>
+  /* Additional sidebar styles (non-critical) */
+  .admin-sidebar .admin-brand { position:relative; }
+  .admin-sidebar .admin-brand .logo-large { display:block; }
+  .admin-sidebar .admin-brand .logo-small { display:none; }
+  .admin-logo { max-width:100%; height:auto; display:block; filter:brightness(1.05); }
+  .admin-logo:hover { filter:brightness(1.18); }
+  .admin-logo-small { width:36px; height:36px; object-fit:contain; margin:4px auto 0; filter:brightness(1.05); }
+  .admin-logo-small:hover { filter:brightness(1.18); }
+  .admin-sidebar nav a { line-height:1.2; white-space:nowrap; }
+  .admin-sidebar nav a i { opacity:1; }
+  .admin-sidebar nav a i::before { display:inline-block; }
+  @media (max-width:860px){ .admin-sidebar { transform:translateX(0); } body { padding-left:0!important; } }
+</style>
+<script>
+(function(){
+  // Apply body class immediately (before DOM ready) to prevent layout shift
+  document.body.classList.add('with-admin-sidebar');
+  
+  // Load Font Awesome if not present
+  if(!document.querySelector('link[href*="font-awesome"], link[href*="cdnjs.cloudflare.com/ajax/libs/font-awesome"')){
+    const fa = document.createElement('link');
+    fa.rel='stylesheet';
+    fa.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css';
+    fa.crossOrigin='anonymous';
+    document.head.appendChild(fa);
+  }
+})();
+</script>
+{% endif %}

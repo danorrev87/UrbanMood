@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>UrbanMood - Rutinas</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* Critical CSS to prevent layout shift - loaded before render */
+    body { background:#0d0d0d;color:#e5e7e8;font-family:'Poppins',sans-serif;margin:0;padding-left:236px;transition:none; }
+    /* Page transition animation */
+    .admin-content { opacity:0; animation:fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); }
+
+ }
+    /* Sidebar critical styles */
+    .admin-sidebar { position:fixed; top:0; left:0; height:100vh; width:236px; background:#101010; border-right:1px solid #1f1f1f; padding:18px 14px; font-family:'Poppins',sans-serif; z-index:1200; display:flex; flex-direction:column; gap:14px; overflow:hidden; box-sizing:border-box; }
+    .admin-sidebar .admin-brand { margin:0 0 10px; background:#3d4348; padding:6px 6px 4px; border-radius:4px; }
+    .admin-sidebar nav ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+    .admin-sidebar nav a { display:flex; align-items:center; gap:10px; padding:8px 10px; color:#c9ced2; font-size:.75rem; font-weight:600; text-decoration:none; border-radius:8px; transition:background .15s ease, color .15s ease; }
+    .admin-sidebar nav a:hover { background:#1d1d1d; color:#e8eaec; }
+    .admin-sidebar nav a.active { background:#1f1f1f; color:#c2d03a; border:1px solid #2d2d2d; }
+    .admin-sidebar nav a i { width:16px; text-align:center; font-size:.9rem; }
+    .admin-sidebar nav li.sep { margin:6px 0; border-top:1px solid #242424; }
+    main { padding:46px 52px 80px; }
+    h1 { margin:0 0 26px;font-size:2rem;color:#c2d03a; }
+    .toolbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin-bottom:24px; }
+    .btn-create { background:#c2d03a; color:#111; border:none; padding:10px 18px; font-size:.75rem; font-weight:600; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+    .btn-create:hover { filter:brightness(1.05); }
+    
+    /* Rutinas List */
+    .rutinas-list { display:grid; gap:16px; }
+    .rutina-card { background:#121212; border:1px solid #252525; padding:18px 20px; border-radius:16px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
+    .rutina-card.inactive { opacity:.55; }
+    .rutina-info { flex:1; }
+    .rutina-info h3 { margin:0 0 6px; font-size:1.05rem; color:#e8eae9; }
+    .rutina-meta { font-size:.65rem; color:#8a9096; display:flex; gap:14px; flex-wrap:wrap; }
+    .rutina-meta span { display:flex; align-items:center; gap:4px; }
+    .rutina-actions { display:flex; gap:6px; }
+    .rutina-actions button { background:#1c1c1c; border:1px solid #303030; color:#ddd; font-size:.6rem; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+    .rutina-actions button:hover { background:#262626; }
+    .rutina-actions button.danger { color:#ff7b7b; border-color:#553131; }
+    .rutina-actions button.danger:hover { background:#331818; }
+    
+    /* Modals */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.65); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:1500; overflow-y:auto; padding:40px 20px; }
+    .modal-backdrop.show { display:flex; }
+    .modal { width:100%; max-width:540px; background:#141414; border:1px solid #2a2a2a; border-radius:18px; padding:28px 26px 30px; box-shadow:0 30px 70px -24px rgba(0,0,0,.7); margin:auto; }
+    .modal h2 { margin:0 0 18px; font-size:1.2rem; color:#c2d03a; }
+    .modal label { display:block; font-size:.6rem; font-weight:600; letter-spacing:.5px; color:#9ca1a5; margin-bottom:6px; margin-top:12px; }
+    .modal label:first-of-type { margin-top:0; }
+    .modal input, .modal textarea, .modal select { width:100%; background:#1b1b1b; border:1px solid #2c2c2c; color:#f5f6f7; padding:10px 12px; font-size:.75rem; border-radius:10px; font-family:inherit; box-sizing:border-box; }
+    .modal textarea { resize:vertical; min-height:70px; }
+    .modal select { cursor:pointer; }
+    .modal .actions-bar { margin-top:20px; display:flex; justify-content:flex-end; gap:10px; }
+    .btn-secondary { background:#222; color:#dde1e4; border:1px solid #303030; padding:10px 18px; font-size:.65rem; border-radius:10px; cursor:pointer; font-weight:600; }
+    .btn-secondary:hover { background:#2a2a2a; }
+    .btn-primary { background:#c2d03a; color:#111; border:none; padding:10px 22px; font-size:.7rem; border-radius:10px; font-weight:600; cursor:pointer; }
+    .btn-primary:hover { filter:brightness(1.05); }
+    
+    /* Edit Rutina Modal - Full Screen for Exercise Management */
+    .modal-edit-rutina { max-width:1200px; width:95vw; max-height:90vh; display:flex; flex-direction:column; }
+    .modal-edit-rutina .modal-body { flex:1; overflow-y:auto; padding-right:8px; }
+    .modal-edit-rutina .modal-body::-webkit-scrollbar { width:8px; }
+    .modal-edit-rutina .modal-body::-webkit-scrollbar-track { background:#1a1a1a; border-radius:4px; }
+    .modal-edit-rutina .modal-body::-webkit-scrollbar-thumb { background:#333; border-radius:4px; }
+    
+    /* Ejercicios Section in Edit Modal */
+    .ejercicios-section { margin-top:24px; padding-top:24px; border-top:1px solid #2a2a2a; }
+    .ejercicios-section h3 { font-size:1rem; color:#c2d03a; margin:0 0 16px; display:flex; align-items:center; gap:8px; }
+    .ejercicio-item { background:#1a1a1a; border:1px solid #2a2a2a; padding:14px 16px; border-radius:12px; margin-bottom:10px; display:flex; gap:14px; }
+    .ejercicio-icon { width:50px; height:50px; background:#0f0f0f; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:#c2d03a; flex-shrink:0; }
+    .ejercicio-content { flex:1; }
+    .ejercicio-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .ejercicio-header h4 { margin:0; font-size:.9rem; color:#e8eae9; display:flex; align-items:center; gap:8px; }
+    .ejercicio-header .drag-handle { cursor:move; color:#666; }
+    .ejercicio-config { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:10px; }
+    .ejercicio-config input { padding:6px 8px; font-size:.7rem; }
+    .btn-remove-ej { background:#2a1a1a; border:1px solid:#553131; color:#ff7b7b; padding:4px 10px; font-size:.6rem; border-radius:6px; cursor:pointer; font-weight:600; }
+    .btn-remove-ej:hover { background:#331818; }
+    .btn-add-ejercicio { background:#1c3a1c; border:1px solid #2d4a2d; color:#85e085; padding:8px 14px; font-size:.65rem; border-radius:8px; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px; margin-top:10px; }
+    .btn-add-ejercicio:hover { background:#254025; }
+    
+    /* Exercise Picker Modal */
+    .exercise-picker { display:none; }
+    .exercise-picker.show { display:block; }
+    .exercise-filters { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+    .exercise-filters select, .exercise-filters input { flex:1; min-width:180px; }
+    .exercise-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; max-height:500px; overflow-y:auto; padding:4px; }
+    .exercise-card { background:#1a1a1a; border:2px solid #2a2a2a; border-radius:14px; cursor:pointer; transition:all .15s; position:relative; overflow:hidden; }
+    .exercise-card:hover { border-color:#c2d03a; transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.4); }
+    .exercise-card.selected { border-color:#c2d03a; box-shadow:0 0 0 3px rgba(194,208,58,.3); }
+    .exercise-card .icon { width:100%; height:200px; display:flex; align-items:center; justify-content:center; background:#0f0f0f; color:#c2d03a; font-size:4rem; }
+    .exercise-card .icon i { filter:drop-shadow(0 2px 4px rgba(0,0,0,.3)); }
+    .exercise-card .icon img { width:100%; height:100%; object-fit:cover; }
+    .exercise-card .name { font-size:.75rem; font-weight:600; color:#e8eae9; padding:10px 12px; background:#141414; text-align:center; line-height:1.3; }
+    .exercise-card .section { display:none; }
+    
+    .empty { text-align:center; opacity:.6; padding:50px 10px; border:2px dashed #222; border-radius:18px; font-size:.8rem; }
+  </style>
+</head>
+<body>
+{% include '_admin_sidebar.html' %}
+<main class="admin-content">
+  <div class="toolbar">
+    <h1>Rutinas</h1>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <select id="filter-user" style="background:#1b1b1b;border:1px solid #2c2c2c;color:#e5e7e8;padding:8px 12px;border-radius:10px;font-size:.75rem;min-width:200px;">
+        <option value="">Todos los usuarios</option>
+        {% for user in users %}
+        <option value="{{ user.id }}">{{ user.name }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn-create" id="open-create"><i class="fas fa-plus"></i> Nueva Rutina</button>
+    </div>
+  </div>
+
+  <div class="rutinas-list" id="rutinas-list">
+    {% if not rutinas %}
+    <div class="empty">
+      <i class="fas fa-dumbbell" style="font-size:2.5rem;margin-bottom:12px;opacity:.4;"></i><br>
+      No hay rutinas creadas todavía.<br>Crea la primera rutina para comenzar.
+    </div>
+    {% else %}
+    {% for rutina in rutinas %}
+    <div class="rutina-card {% if not rutina.is_active %}inactive{% endif %}" data-id="{{ rutina.id }}" data-user-ids="{{ rutina.assigned_users|selectattr('is_active')|map(attribute='user_id')|list|join(',') }}">
+      <div class="rutina-info">
+        <h3>{{ rutina.name }}</h3>
+        <div class="rutina-meta">
+          <span><i class="fas fa-user-tie"></i> Coach: {{ rutina.coach.name }}</span>
+          <span><i class="fas fa-dumbbell"></i> {{ rutina.ejercicios|length }} ejercicios</span>
+          {% if not rutina.is_active %}<span style="color:#ff7b7b;"><i class="fas fa-circle-xmark"></i> Inactiva</span>{% endif %}
+        </div>
+        {% if rutina.assigned_users %}
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+          {% for au in rutina.assigned_users %}
+          <span style="background:#1a2a1a;border:1px solid #2d4a2d;color:#85e085;padding:3px 10px;border-radius:20px;font-size:.6rem;font-weight:600;">
+            <i class="fas fa-user" style="margin-right:3px;"></i>{{ au.user.name }}{% if not au.is_active %} <span style="color:#ff7b7b;">(inactivo)</span>{% endif %}
+          </span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div style="margin-top:8px;font-size:.6rem;color:#666;">Sin usuarios asignados</div>
+        {% endif %}
+      </div>
+      <div class="rutina-actions">
+        <button onclick="editRutina({{ rutina.id }})"><i class="fas fa-edit"></i> Editar</button>
+        <button class="danger" onclick="deleteRutina({{ rutina.id }})"><i class="fas fa-trash"></i> Eliminar</button>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+</main>
+
+<!-- Create Rutina Modal -->
+<div class="modal-backdrop" id="modal-create">
+  <div class="modal">
+    <h2>Nueva Rutina</h2>
+    <form id="form-create">
+      <label>Nombre de la Rutina</label>
+      <input type="text" name="name" placeholder="Ej: Rutina Fullbody Semana 1" required>
+
+      <label>Asignar a Usuarios</label>
+      <div class="user-checklist" id="create-user-checklist" style="max-height:180px;overflow-y:auto;background:#1b1b1b;border:1px solid #2c2c2c;border-radius:10px;padding:8px 12px;">
+        {% for user in users %}
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;font-size:.75rem;color:#e5e7e8;border-bottom:1px solid #222;">
+          <input type="checkbox" name="user_ids" value="{{ user.id }}" style="width:auto;accent-color:#c2d03a;">
+          {{ user.name }} <span style="color:#8a9096;font-size:.65rem;">{{ user.email }}</span>
+        </label>
+        {% endfor %}
+      </div>
+
+      <label>Descripción / Notas (Opcional)</label>
+      <textarea name="description" placeholder="Notas o instrucciones para el usuario"></textarea>
+
+      <div class="actions-bar">
+        <button type="button" class="btn-secondary" onclick="closeModal('modal-create')">Cancelar</button>
+        <button type="submit" class="btn-primary">Crear Rutina</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Rutina Modal -->
+<div class="modal-backdrop" id="modal-edit">
+  <div class="modal modal-edit-rutina">
+    <h2>Editar Rutina</h2>
+    <div class="modal-body">
+      <form id="form-edit">
+        <input type="hidden" name="rutina_id">
+
+        <label>Nombre de la Rutina</label>
+        <input type="text" name="name" required>
+
+        <label>Asignar a Usuarios</label>
+        <div class="user-checklist" id="edit-user-checklist" style="max-height:180px;overflow-y:auto;background:#1b1b1b;border:1px solid #2c2c2c;border-radius:10px;padding:8px 12px;">
+          {% for user in users %}
+          <label style="display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;font-size:.75rem;color:#e5e7e8;border-bottom:1px solid #222;">
+            <input type="checkbox" name="user_ids" value="{{ user.id }}" style="width:auto;accent-color:#c2d03a;">
+            {{ user.name }} <span style="color:#8a9096;font-size:.65rem;">{{ user.email }}</span>
+          </label>
+          {% endfor %}
+        </div>
+
+        <label>Descripción / Notas</label>
+        <textarea name="description"></textarea>
+
+        <label>Estado</label>
+        <select name="is_active">
+          <option value="true">Activa</option>
+          <option value="false">Inactiva</option>
+        </select>
+      </form>
+      
+      <!-- Ejercicios Section -->
+      <div class="ejercicios-section">
+        <h3><i class="fas fa-dumbbell"></i> Ejercicios de la Rutina</h3>
+        <div id="ejercicios-list"></div>
+        <button class="btn-add-ejercicio" onclick="openExercisePicker()">
+          <i class="fas fa-plus"></i> Agregar Ejercicio
+        </button>
+      </div>
+    </div>
+    
+    <div class="actions-bar">
+      <button type="button" class="btn-secondary" onclick="closeModal('modal-edit')">Cerrar</button>
+      <button type="button" class="btn-primary" onclick="saveRutina()">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Exercise Picker Modal -->
+<div class="modal-backdrop exercise-picker" id="modal-exercise-picker">
+  <div class="modal">
+    <h2>Seleccionar Ejercicio</h2>
+    <div class="exercise-filters">
+      <select id="filter-body-section">
+        <option value="">Todas las secciones</option>
+        <option value="pecho">Pecho</option>
+        <option value="espalda">Espalda</option>
+        <option value="hombros">Hombros</option>
+        <option value="biceps">Bíceps</option>
+        <option value="triceps">Tríceps</option>
+        <option value="piernas">Piernas</option>
+        <option value="abdomen">Abdomen</option>
+        <option value="gluteos">Glúteos</option>
+        <option value="cardio">Cardio</option>
+        <option value="funcional">Funcional</option>
+      </select>
+      <input type="text" id="filter-search" placeholder="Buscar ejercicio...">
+    </div>
+    <div class="exercise-grid" id="exercise-grid"></div>
+    <div class="actions-bar">
+      <button type="button" class="btn-secondary" onclick="closeExercisePicker()">Cancelar</button>
+      <button type="button" class="btn-primary" id="btn-add-exercises" onclick="addSelectedExercise()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentRutinaId = null;
+let selectedExerciseIds = [];
+let allExercises = [];
+let rutinaEjercicios = [];
+
+// Filter by assigned user
+document.getElementById('filter-user').addEventListener('change', function() {
+  const uid = this.value;
+  document.querySelectorAll('.rutina-card').forEach(card => {
+    if (!uid) {
+      card.style.display = '';
+      return;
+    }
+    const userIds = (card.dataset.userIds || '').split(',');
+    card.style.display = userIds.includes(uid) ? '' : 'none';
+  });
+});
+
+// Body section icon mapping
+function getBodySectionIcon(section) {
+  const icons = {
+    'pecho': 'fa-hand-fist',
+    'espalda': 'fa-arrows-left-right-to-line',
+    'hombros': 'fa-hands-praying',
+    'biceps': 'fa-hand-back-fist',
+    'triceps': 'fa-hand-fist',
+    'piernas': 'fa-person-walking',
+    'abdomen': 'fa-shirt',
+    'gluteos': 'fa-person-walking',
+    'cardio': 'fa-heart-pulse',
+    'funcional': 'fa-person-running',
+    'estiramiento': 'fa-hands-holding'
+  };
+  return icons[section] || 'fa-dumbbell';
+}
+
+// Load all exercises on page load
+fetch('/admin/ejercicios')
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      allExercises = data.ejercicios;
+      console.log('Loaded exercises:', allExercises.length);
+      console.log('First PECHO exercise:', allExercises.find(e => e.body_section === 'pecho'));
+    }
+  });
+
+// Create Rutina
+document.getElementById('form-create').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const user_ids = formData.getAll('user_ids').map(Number);
+  const data = {
+    name: formData.get('name'),
+    description: formData.get('description'),
+    user_ids: user_ids
+  };
+
+  const res = await fetch('/admin/rutinas/create', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+
+  const result = await res.json();
+  if (result.success) {
+    location.reload();
+  } else {
+    alert(result.message || 'Error al crear rutina');
+  }
+});
+
+// Edit Rutina
+async function editRutina(id) {
+  currentRutinaId = id;
+  const res = await fetch(`/admin/rutinas/${id}`);
+  const data = await res.json();
+
+  if (data.success) {
+    const rutina = data.rutina;
+    const form = document.getElementById('form-edit');
+    form.querySelector('[name="rutina_id"]').value = rutina.id;
+    form.querySelector('[name="name"]').value = rutina.name;
+    form.querySelector('[name="description"]').value = rutina.description || '';
+    form.querySelector('[name="is_active"]').value = rutina.is_active ? 'true' : 'false';
+
+    // Set assigned user checkboxes
+    const assignedUserIds = (rutina.assigned_users || []).map(au => au.user_id);
+    const checkboxes = document.querySelectorAll('#edit-user-checklist input[name="user_ids"]');
+    checkboxes.forEach(cb => {
+      cb.checked = assignedUserIds.includes(Number(cb.value));
+    });
+
+    rutinaEjercicios = rutina.ejercicios || [];
+    renderEjercicios();
+
+    document.getElementById('modal-edit').classList.add('show');
+  }
+}
+
+async function saveRutina() {
+  const form = document.getElementById('form-edit');
+  const formData = new FormData(form);
+  const user_ids = formData.getAll('user_ids').map(Number);
+  const data = {
+    name: formData.get('name'),
+    description: formData.get('description'),
+    is_active: formData.get('is_active') === 'true',
+    user_ids: user_ids
+  };
+
+  const res = await fetch(`/admin/rutinas/${currentRutinaId}/update`, {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+
+  const result = await res.json();
+  if (result.success) {
+    location.reload();
+  } else {
+    alert(result.message || 'Error al guardar rutina');
+  }
+}
+
+async function deleteRutina(id) {
+  if (!confirm('¿Eliminar esta rutina? No se puede deshacer.')) return;
+  
+  const res = await fetch(`/admin/rutinas/${id}`, { method: 'DELETE' });
+  const result = await res.json();
+  
+  if (result.success) {
+    location.reload();
+  } else {
+    alert(result.message || 'Error al eliminar rutina');
+  }
+}
+
+// Exercise Management
+function renderEjercicios() {
+  const container = document.getElementById('ejercicios-list');
+  if (rutinaEjercicios.length === 0) {
+    container.innerHTML = '<div class="empty" style="padding:30px;">No hay ejercicios agregados aún.</div>';
+    return;
+  }
+  
+  container.innerHTML = rutinaEjercicios.map((re, idx) => `
+    <div class="ejercicio-item" data-id="${re.id}">
+      <div class="ejercicio-icon">
+        ${re.ejercicio_image_url 
+          ? `<img src="${re.ejercicio_image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="${re.ejercicio_name}">`
+          : `<i class="fas ${getBodySectionIcon(re.ejercicio_body_section)}"></i>`
+        }
+      </div>
+      <div class="ejercicio-content">
+        <div class="ejercicio-header">
+          <h4>
+            <span class="drag-handle"><i class="fas fa-grip-vertical"></i></span>
+            ${re.ejercicio_name}
+            <span style="font-size:.65rem;color:#7a8086;font-weight:400;margin-left:8px;">(${re.ejercicio_body_section})</span>
+          </h4>
+          <button class="btn-remove-ej" onclick="removeEjercicio(${re.id})">
+            <i class="fas fa-trash"></i> Quitar
+          </button>
+        </div>
+        <div class="ejercicio-config">
+          <div>
+            <label style="font-size:.6rem;color:#8a9096;">Series</label>
+            <input type="number" value="${re.series || 3}" onchange="updateEjercicio(${re.id}, 'series', this.value)">
+          </div>
+          <div>
+            <label style="font-size:.6rem;color:#8a9096;">Repeticiones</label>
+            <input type="text" value="${re.repeticiones || ''}" placeholder="12" onchange="updateEjercicio(${re.id}, 'repeticiones', this.value)">
+          </div>
+          <div>
+            <label style="font-size:.6rem;color:#8a9096;">Peso</label>
+            <input type="text" value="${re.peso || ''}" placeholder="20kg" onchange="updateEjercicio(${re.id}, 'peso', this.value)">
+          </div>
+          <div>
+            <label style="font-size:.6rem;color:#8a9096;">Descanso</label>
+            <input type="text" value="${re.descanso || ''}" placeholder="60 seg" onchange="updateEjercicio(${re.id}, 'descanso', this.value)">
+          </div>
+        </div>
+        ${re.notas ? `<div style="margin-top:8px;font-size:.65rem;color:#8a9096;">${re.notas}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function updateEjercicio(reId, field, value) {
+  const res = await fetch(`/admin/rutinas/${currentRutinaId}/ejercicios/${reId}`, {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ [field]: value })
+  });
+  
+  if (res.ok) {
+    // Update local data
+    const re = rutinaEjercicios.find(e => e.id === reId);
+    if (re) re[field] = value;
+  }
+}
+
+async function removeEjercicio(reId) {
+  if (!confirm('¿Quitar este ejercicio de la rutina?')) return;
+  
+  const res = await fetch(`/admin/rutinas/${currentRutinaId}/ejercicios/${reId}`, {
+    method: 'DELETE'
+  });
+  
+  if (res.ok) {
+    rutinaEjercicios = rutinaEjercicios.filter(e => e.id !== reId);
+    renderEjercicios();
+  }
+}
+
+// Exercise Picker
+function openExercisePicker() {
+  selectedExerciseIds = [];
+  renderExerciseGrid();
+  document.getElementById('modal-exercise-picker').classList.add('show');
+}
+
+function closeExercisePicker() {
+  document.getElementById('modal-exercise-picker').classList.remove('show');
+}
+
+function renderExerciseGrid() {
+  const bodySection = document.getElementById('filter-body-section').value;
+  const search = document.getElementById('filter-search').value.toLowerCase();
+  
+  let filtered = allExercises;
+  if (bodySection) {
+    filtered = filtered.filter(e => e.body_section === bodySection);
+  }
+  if (search) {
+    filtered = filtered.filter(e => e.name.toLowerCase().includes(search));
+  }
+  
+  const grid = document.getElementById('exercise-grid');
+  grid.innerHTML = filtered.map(e => `
+    <div class="exercise-card ${selectedExerciseIds.includes(e.id) ? 'selected' : ''}" onclick="toggleExercise(${e.id})" title="${e.body_section}">
+      <div class="icon">
+        ${e.image_url 
+          ? `<img src="${e.image_url}" alt="${e.name}">`
+          : `<i class="fas ${getBodySectionIcon(e.body_section)}"></i>`
+        }
+      </div>
+      <div class="name">${e.name}</div>
+    </div>
+  `).join('');
+}
+
+function toggleExercise(id) {
+  const index = selectedExerciseIds.indexOf(id);
+  if (index > -1) {
+    selectedExerciseIds.splice(index, 1);
+  } else {
+    selectedExerciseIds.push(id);
+  }
+  renderExerciseGrid();
+  updateAddButton();
+}
+
+function updateAddButton() {
+  const btn = document.getElementById('btn-add-exercises');
+  if (selectedExerciseIds.length === 0) {
+    btn.textContent = 'Agregar';
+  } else if (selectedExerciseIds.length === 1) {
+    btn.textContent = 'Agregar 1 ejercicio';
+  } else {
+    btn.textContent = `Agregar ${selectedExerciseIds.length} ejercicios`;
+  }
+}
+
+async function addSelectedExercise() {
+  if (selectedExerciseIds.length === 0) {
+    alert('Selecciona al menos un ejercicio');
+    return;
+  }
+  
+  // Add all selected exercises
+  for (const ejercicioId of selectedExerciseIds) {
+    const res = await fetch(`/admin/rutinas/${currentRutinaId}/ejercicios`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ ejercicio_id: ejercicioId })
+    });
+    
+    const result = await res.json();
+    if (result.success) {
+      rutinaEjercicios.push(result.rutina_ejercicio);
+    } else {
+      alert(`Error al agregar ${allExercises.find(e => e.id === ejercicioId)?.name}: ${result.message}`);
+      return;
+    }
+  }
+  
+  renderEjercicios();
+  closeExercisePicker();
+}
+
+// Filters
+document.getElementById('filter-body-section').addEventListener('change', renderExerciseGrid);
+document.getElementById('filter-search').addEventListener('input', renderExerciseGrid);
+
+// Modal controls
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+document.getElementById('open-create').onclick = () => {
+  document.getElementById('modal-create').classList.add('show');
+};
+
+document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) {
+      backdrop.classList.remove('show');
+    }
+  });
+});
+</script>
+</body>
+</html>
