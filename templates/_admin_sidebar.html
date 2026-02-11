@@ -1,4 +1,6 @@
 {% if logged_in %}
+<button class="sidebar-toggle" id="sidebar-toggle"><i class="fas fa-bars"></i></button>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 <aside id="admin-sidebar" class="admin-sidebar">
   <div class="admin-brand">
     <a href="/" class="logo-large"><img src="/static/images/urbanmood_banner.png" alt="UrbanMood" class="admin-logo"></a>
@@ -22,7 +24,6 @@
   </nav>
 </aside>
 <style>
-  /* Additional sidebar styles (non-critical) */
   .admin-sidebar .admin-brand { position:relative; }
   .admin-sidebar .admin-brand .logo-large { display:block; }
   .admin-sidebar .admin-brand .logo-small { display:none; }
@@ -33,20 +34,41 @@
   .admin-sidebar nav a { line-height:1.2; white-space:nowrap; }
   .admin-sidebar nav a i { opacity:1; }
   .admin-sidebar nav a i::before { display:inline-block; }
-  @media (max-width:860px){ .admin-sidebar { transform:translateX(0); } body { padding-left:0!important; } }
+  .sidebar-toggle { display:none; position:fixed; top:14px; left:14px; z-index:1300; background:#1a1a1a; border:1px solid #2a2a2a; color:#c2d03a; width:40px; height:40px; border-radius:10px; font-size:1.1rem; cursor:pointer; align-items:center; justify-content:center; }
+  .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1100; }
+  .sidebar-overlay.show { display:block; }
+  @media (max-width:860px) {
+    body { padding-left:0!important; }
+    .admin-sidebar { transform:translateX(-100%); transition:transform .25s ease; }
+    .admin-sidebar.open { transform:translateX(0); }
+    .sidebar-toggle { display:flex; }
+  }
 </style>
 <script>
 (function(){
-  // Apply body class immediately (before DOM ready) to prevent layout shift
   document.body.classList.add('with-admin-sidebar');
-  
-  // Load Font Awesome if not present
+
   if(!document.querySelector('link[href*="font-awesome"], link[href*="cdnjs.cloudflare.com/ajax/libs/font-awesome"')){
     const fa = document.createElement('link');
     fa.rel='stylesheet';
     fa.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css';
     fa.crossOrigin='anonymous';
     document.head.appendChild(fa);
+  }
+
+  // Mobile sidebar toggle
+  const toggle = document.getElementById('sidebar-toggle');
+  const overlay = document.getElementById('sidebar-overlay');
+  const sidebar = document.getElementById('admin-sidebar');
+  if (toggle && sidebar) {
+    toggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('show');
+    });
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('show');
+    });
   }
 })();
 </script>

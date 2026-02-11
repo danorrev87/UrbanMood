@@ -47,6 +47,14 @@
     td input.inline, td select.inline { width:100%;background:#181818;border:1px solid #303030;color:#eee;border-radius:6px;padding:4px 6px;font-size:.7rem; }
     td input.inline:focus, td select.inline:focus { outline:none;border-color:#b6c628; }
     .fade { transition:background-color .6s ease; }
+    @media (max-width:860px) {
+      main { padding:24px 16px 60px!important; }
+      h1 { font-size:1.4rem; margin-left:44px; }
+      form#create-user { flex-direction:column; }
+      form#create-user input, form#create-user select, form#create-user button { width:100%; box-sizing:border-box; }
+      table { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:.75rem; }
+      th, td { padding:8px 10px; white-space:nowrap; }
+    }
   </style>
 </head>
 <body>
@@ -213,6 +221,8 @@
       return;
     }
   });
+
+
 </script>
 </main>
 </body>
