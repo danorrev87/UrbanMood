@@ -7,10 +7,7 @@ from functools import wraps
 from db import SessionLocal
 from models import User, UserRole, InvitationToken, InvitationPurpose, Rutina, WorkoutLog, RutinaEjercicio, RutinaUser
 from config import config
-try:
-    from mailersend.emails import NewEmail as Email
-except ImportError:
-    from mailersend import Email
+from email_utils import send_email as _send_email
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -317,37 +314,39 @@ def send_invitation_email(email_to: str, token: str):
     if not config.MAILERSEND_API_KEY:
         print(f"[INVITE LINK] https://urbanmood.net/invite/{token}")
         return
-    mailer = Email(config.MAILERSEND_API_KEY)
-    mail_body = {}
-    mail_from = {"name": config.MAIL_FROM_NAME, "email": config.MAIL_FROM_EMAIL}
-    recipients = [{"name": email_to, "email": email_to}]
-    subject = "Invitación UrbanMood"
-    html_content = f"""
-    <p>Te invitamos a crear tu cuenta UrbanMood.</p>
-    <p><a href='https://urbanmood.net/invite/{token}'>Crear contraseña</a> (expira en 72h)</p>
-    """
-    mailer.set_mail_from(mail_from, mail_body)
-    mailer.set_mail_to(recipients, mail_body)
-    mailer.set_subject(subject, mail_body)
-    mailer.set_html_content(html_content, mail_body)
-    mailer.send(mail_body)
+    try:
+        _send_email(
+            api_key=config.MAILERSEND_API_KEY,
+            from_name=config.MAIL_FROM_NAME,
+            from_email=config.MAIL_FROM_EMAIL,
+            to_email=email_to,
+            subject="Invitación UrbanMood",
+            html_content=f"""
+            <p>Te invitamos a crear tu cuenta UrbanMood.</p>
+            <p><a href='https://urbanmood.net/invite/{token}'>Crear contraseña</a> (expira en 72h)</p>
+            """,
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger("urbanmood.email").exception("Failed to send invitation email to %s", email_to)
 
 def send_reset_email(email_to: str, token: str):
     if not config.MAILERSEND_API_KEY:
         print(f"[RESET LINK] https://urbanmood.net/reset-password/{token}")
         return
-    mailer = Email(config.MAILERSEND_API_KEY)
-    mail_body = {}
-    mail_from = {"name": config.MAIL_FROM_NAME, "email": config.MAIL_FROM_EMAIL}
-    recipients = [{"name": email_to, "email": email_to}]
-    subject = "Restablecer contraseña - UrbanMood"
-    html_content = f"""
-    <p>Recibimos una solicitud para restablecer tu contraseña.</p>
-    <p><a href='https://urbanmood.net/reset-password/{token}'>Restablecer contraseña</a> (expira en 24h)</p>
-    <p>Si no solicitaste este cambio, podés ignorar este email.</p>
-    """
-    mailer.set_mail_from(mail_from, mail_body)
-    mailer.set_mail_to(recipients, mail_body)
-    mailer.set_subject(subject, mail_body)
-    mailer.set_html_content(html_content, mail_body)
-    mailer.send(mail_body)
+    try:
+        _send_email(
+            api_key=config.MAILERSEND_API_KEY,
+            from_name=config.MAIL_FROM_NAME,
+            from_email=config.MAIL_FROM_EMAIL,
+            to_email=email_to,
+            subject="Restablecer contraseña - UrbanMood",
+            html_content=f"""
+            <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+            <p><a href='https://urbanmood.net/reset-password/{token}'>Restablecer contraseña</a> (expira en 24h)</p>
+            <p>Si no solicitaste este cambio, podés ignorar este email.</p>
+            """,
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger("urbanmood.email").exception("Failed to send reset email to %s", email_to)

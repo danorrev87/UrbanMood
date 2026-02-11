@@ -1,6 +1,6 @@
 Flask
 flask-cors
-mailersend
+mailersend<2
 python-dotenv
 gunicorn
 SQLAlchemy
