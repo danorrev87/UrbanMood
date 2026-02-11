@@ -127,10 +127,16 @@ def delete_user(user_id):
             admin_count = db.query(User).filter(User.role==UserRole.admin).count()
             if admin_count == 1:
                 return jsonify({"success": False, "message": "No se puede eliminar el último admin"}), 400
-        # Clean up related records
-        from models import WorkoutLog
+        # Clean up all related records
+        from models import WorkoutLog, AuditLog, InvitationToken
         db.query(RutinaUser).filter(RutinaUser.user_id == user_id).delete()
         db.query(WorkoutLog).filter(WorkoutLog.user_id == user_id).delete()
+        db.query(InvitationToken).filter(InvitationToken.user_id == user_id).delete()
+        db.query(AuditLog).filter(AuditLog.user_id == user_id).update({'user_id': None})
+        # Unassign routines created by this user (if coach)
+        db.query(Rutina).filter(Rutina.created_by_coach_id == user_id).update({'created_by_coach_id': session.get('uid')})
+        # Clear created_by references from other users
+        db.query(User).filter(User.created_by_user_id == user_id).update({'created_by_user_id': None})
         log_action(db, 'delete_user', 'user', user_id, {'email': user.email})
         db.delete(user)
         db.commit()
