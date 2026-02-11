@@ -697,6 +697,9 @@ footer {
 .side-menu.active nav ul li:nth-child(6) {
     transition-delay: 0.6s;
 }
+.side-menu.active nav ul li:nth-child(7) {
+    transition-delay: 0.7s;
+}
 
 .side-menu nav a {
     color: white;
