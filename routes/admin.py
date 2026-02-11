@@ -127,6 +127,10 @@ def delete_user(user_id):
             admin_count = db.query(User).filter(User.role==UserRole.admin).count()
             if admin_count == 1:
                 return jsonify({"success": False, "message": "No se puede eliminar el último admin"}), 400
+        # Clean up related records
+        from models import WorkoutLog
+        db.query(RutinaUser).filter(RutinaUser.user_id == user_id).delete()
+        db.query(WorkoutLog).filter(WorkoutLog.user_id == user_id).delete()
         log_action(db, 'delete_user', 'user', user_id, {'email': user.email})
         db.delete(user)
         db.commit()
